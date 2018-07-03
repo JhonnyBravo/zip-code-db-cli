@@ -14,7 +14,7 @@ local.properties
 .recommenders
 
 # Java
-connection.properties
+src/test/resources/*.properties
 
 # Gradle
 .gradle
