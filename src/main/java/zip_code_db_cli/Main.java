@@ -10,8 +10,8 @@ import gnu.getopt.LongOpt;
  */
 public class Main {
     /**
-    * @param args -i, --initialize &lt;configPath&gt; &lt;directoryPath&gt;
-    */
+     * @param args -i, --initialize &lt;configPath&gt; &lt;directoryPath&gt;
+     */
     public static void main(String[] args) {
         LongOpt[] longopts = new LongOpt[1];
         longopts[0] = new LongOpt("initialize", LongOpt.REQUIRED_ARGUMENT, null, 'i');
@@ -35,17 +35,15 @@ public class Main {
         }
 
         if (iFlag == 1) {
-            //ファイルリストを取得。
+            // ファイルリストを取得。
             GetPathList gpl = new GetPathList(dirPath, "csv");
-            gpl.runCommand();
+            List<String> pathList = gpl.runCommand();
 
             if (gpl.getCode() != 2) {
                 System.exit(gpl.getCode());
             }
 
-            List<String> pathList = gpl.getPathList();
-
-            //既存レコードを削除。
+            // 既存レコードを削除。
             TZipCodeController tzcc = new TZipCodeController();
             tzcc.deleteRecord(configPath);
 
@@ -60,14 +58,14 @@ public class Main {
             }
 
             for (String path : pathList) {
-                //CSV 読込。
+                // CSV 読込。
                 List<String[]> recordset = tzcc.importCsv(path);
 
                 if (tzcc.getCode() == 1) {
                     System.exit(tzcc.getCode());
                 }
 
-                //新規レコードを登録。
+                // 新規レコードを登録。
                 tzcc.insertRecord(configPath, recordset);
                 System.exit(tzcc.getCode());
             }
