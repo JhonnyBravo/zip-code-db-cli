@@ -67,8 +67,13 @@ public class Main {
 
                 // 新規レコードを登録。
                 tzcc.insertRecord(configPath, recordset);
-                System.exit(tzcc.getCode());
+
+                if (tzcc.getCode() == 1) {
+                    System.exit(tzcc.getCode());
+                }
             }
+
+            System.exit(tzcc.getCode());
         }
     }
 }
