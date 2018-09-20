@@ -7,164 +7,173 @@ import java.util.List;
 
 import csv_resource.CsvController;
 import mysql_resource.MySqlController;
+import status_resource.StatusController;
 
 /**
  * t_zip_code テーブルのレコード操作を管理する。
  */
-public class TZipCodeController {
-    private int code;
-
+public class TZipCodeController extends StatusController {
     /**
-    * @param path インポート対象とするファイルのパスを指定する。
-    * @return recordset CSV のデータをリストに変換して返す。
-    */
+     * @param path インポート対象とするファイルのパスを指定する。
+     * @return recordset CSV のデータをリストに変換して返す。
+     */
     public List<String[]> importCsv(String path) {
         CsvController cc = new CsvController();
         List<String[]> recordset = cc.getRecordset(path, "MS932");
-        this.code = cc.getCode();
+
+        this.setCode(cc.getCode());
         return recordset;
     }
 
     /**
-    * t_zip_code テーブルからレコードを削除する。
-    * @param path 接続情報を記述したプロパティファイルのパスを指定する。
-    */
+     * t_zip_code テーブルからレコードを削除する。
+     * 
+     * @param path 接続情報を記述したプロパティファイルのパスを指定する。
+     */
     public void deleteRecord(String path) {
-        MySqlController msc = new MySqlController(path);
-        //DB 接続を開始
-        msc.openConnection();
-        this.code = msc.getCode();
+        this.initStatus();
 
-        if (this.code == 1) {
+        MySqlController msc = new MySqlController(path);
+        // DB 接続を開始
+        msc.openConnection();
+        this.setCode(msc.getCode());
+
+        if (this.getCode() == 1) {
             return;
         }
 
-        //Statement の生成
+        // Statement の生成
         PreparedStatement ps = msc.openStatement("DELETE FROM t_zip_code;");
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
-        //クエリの実行
+        // クエリの実行
         int deleteCount = 0;
 
         try {
             deleteCount = ps.executeUpdate();
             System.out.println(deleteCount + " 件のレコードを削除しました。");
         } catch (SQLException e) {
-            this.code = 1;
-            System.err.println("エラーが発生しました。 " + e.toString());
+            this.setMessage("エラーが発生しました。 " + e.toString());
+            this.errorTerminate();
+
             msc.closeStatement();
             msc.closeConnection();
             return;
         }
 
-        //DB 接続を切断
+        // DB 接続を切断
         msc.closeStatement();
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
         msc.closeConnection();
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             return;
         }
 
-        //終了ステータスの設定
+        // 終了ステータスの設定
         if (deleteCount != 0) {
-            this.code = 2;
+            this.setCode(2);
+            this.setMessage(null);
         } else {
-            this.code = 0;
+            this.initStatus();
         }
     }
 
     /**
-    * t_zip_code.no のオートインクリメントをリセットする。
-    * @param path 接続情報を記述したプロパティファイルのパスを指定する。
-    */
+     * t_zip_code.no のオートインクリメントをリセットする。
+     * 
+     * @param path 接続情報を記述したプロパティファイルのパスを指定する。
+     */
     public void resetNo(String path) {
-        MySqlController msc = new MySqlController(path);
-        //DB 接続を開始
-        msc.openConnection();
-        this.code = msc.getCode();
+        this.initStatus();
 
-        if (this.code == 1) {
+        MySqlController msc = new MySqlController(path);
+        // DB 接続を開始
+        msc.openConnection();
+        this.setCode(msc.getCode());
+
+        if (this.getCode() == 1) {
             return;
         }
 
-        //Statement の生成
+        // Statement の生成
         PreparedStatement ps = msc.openStatement("ALTER TABLE t_zip_code auto_increment=1;");
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
-        //クエリの実行
+        // クエリの実行
         try {
             ps.executeUpdate();
-            this.code = 2;
+            this.setCode(2);
+            this.setMessage(null);
         } catch (SQLException e) {
-            this.code = 1;
-            System.err.println("エラーが発生しました。 " + e.toString());
+            this.setMessage("エラーが発生しました。 " + e.toString());
+            this.errorTerminate();
+
             msc.closeStatement();
             msc.closeConnection();
             return;
         }
 
-        //DB 接続を切断
+        // DB 接続を切断
         msc.closeStatement();
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
         msc.closeConnection();
-        this.code = msc.getCode();
-
-        if (this.code == 1) {
-            return;
-        }
+        this.setCode(msc.getCode());
     }
 
     /**
-    * t_zip_code テーブルへ CSV データを一括登録する。
-    * @param path 接続情報を記述したプロパティファイルのパスを指定する。
-    * @param recordset t_zip_code テーブルへ登録する CSV データのリストを指定する。
-    */
+     * t_zip_code テーブルへ CSV データを一括登録する。
+     * 
+     * @param path      接続情報を記述したプロパティファイルのパスを指定する。
+     * @param recordset t_zip_code テーブルへ登録する CSV データのリストを指定する。
+     */
     public void insertRecord(String path, List<String[]> recordset) {
-        MySqlController msc = new MySqlController(path);
-        //DB 接続を開始
-        msc.openConnection();
-        this.code = msc.getCode();
+        this.initStatus();
 
-        if (this.code == 1) {
+        MySqlController msc = new MySqlController(path);
+        // DB 接続を開始
+        msc.openConnection();
+        this.setCode(msc.getCode());
+
+        if (this.getCode() == 1) {
             return;
         }
 
-        //Statement の生成
+        // Statement の生成
         msc.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
         msc.setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
         PreparedStatement ps = msc.openStatement("SELECT * FROM t_zip_code;");
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
-        //レコードを追加
+        // レコードを追加
         int insertCount = 0;
         ResultSet rs = null;
 
@@ -191,41 +200,36 @@ public class TZipCodeController {
 
             System.out.println(insertCount + " 件のレコードを追加しました。");
         } catch (SQLException e) {
-            this.code = 1;
-            System.err.println("エラーが発生しました。 " + e.toString());
+            this.setMessage("エラーが発生しました。 " + e.toString());
+            this.errorTerminate();
+
             msc.closeStatement();
             msc.closeConnection();
             return;
         }
 
-        //DB 接続を切断
+        // DB 接続を切断
         msc.closeStatement();
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             msc.closeConnection();
             return;
         }
 
         msc.closeConnection();
-        this.code = msc.getCode();
+        this.setCode(msc.getCode());
 
-        if (this.code == 1) {
+        if (this.getCode() == 1) {
             return;
         }
 
-        //終了ステータスの設定
+        // 終了ステータスの設定
         if (insertCount != 0) {
-            this.code = 2;
+            this.setCode(2);
+            this.setMessage(null);
         } else {
-            this.code = 0;
+            this.initStatus();
         }
-    }
-
-    /**
-    * @return 終了ステータスを返す。
-    */
-    public int getCode() {
-        return code;
     }
 }
