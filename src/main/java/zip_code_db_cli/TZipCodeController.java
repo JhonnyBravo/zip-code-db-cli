@@ -6,48 +6,35 @@ import java.sql.SQLException;
 import java.util.List;
 
 import csv_resource.CsvController;
-import mysql_resource.MySqlController;
-import status_resource.StatusController;
+import mysql_resource.DaoController;
 
 /**
  * t_zip_code テーブルのレコード操作を管理する。
  */
-public class TZipCodeController extends StatusController {
+public class TZipCodeController extends DaoController {
+    private CsvController ctrlCsv = new CsvController();
+
     /**
      * @param path インポート対象とするファイルのパスを指定する。
-     * @return recordset CSV のデータをリストに変換して返す。
+     * @return List&lt;String[]&gt; CSV のデータを文字列配列のリストに変換して返す。
      */
     public List<String[]> importCsv(String path) {
-        CsvController cc = new CsvController();
-        List<String[]> recordset = cc.getRecordset(path, "MS932");
+        List<String[]> recordset = ctrlCsv.getRecordset(path, "MS932");
 
-        this.setCode(cc.getCode());
+        this.setCode(ctrlCsv.getCode());
         return recordset;
     }
 
     /**
      * t_zip_code テーブルからレコードを削除する。
-     * 
-     * @param path 接続情報を記述したプロパティファイルのパスを指定する。
      */
-    public void deleteRecord(String path) {
-        this.initStatus();
-
-        MySqlController msc = new MySqlController(path);
-        // DB 接続を開始
-        msc.openConnection();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            return;
-        }
-
+    public void deleteRecord() {
         // Statement の生成
-        PreparedStatement ps = msc.openStatement("DELETE FROM t_zip_code;");
-        this.setCode(msc.getCode());
+        PreparedStatement ps = this.openReadOnlyStatement("DELETE FROM t_zip_code;");
 
         if (this.getCode() == 1) {
-            msc.closeConnection();
+            this.closeConnection();
+            this.setCode(1);
             return;
         }
 
@@ -57,63 +44,30 @@ public class TZipCodeController extends StatusController {
         try {
             deleteCount = ps.executeUpdate();
             System.out.println(deleteCount + " 件のレコードを削除しました。");
+
+            if (deleteCount > 0) {
+                this.setCode(2);
+            } else {
+                this.initStatus();
+            }
         } catch (SQLException e) {
             this.setMessage("エラーが発生しました。 " + e.toString());
+            this.closeStatement();
+            this.closeConnection();
             this.errorTerminate();
-
-            msc.closeStatement();
-            msc.closeConnection();
-            return;
-        }
-
-        // DB 接続を切断
-        msc.closeStatement();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            msc.closeConnection();
-            return;
-        }
-
-        msc.closeConnection();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            return;
-        }
-
-        // 終了ステータスの設定
-        if (deleteCount != 0) {
-            this.setCode(2);
-            this.setMessage(null);
-        } else {
-            this.initStatus();
         }
     }
 
     /**
      * t_zip_code.no のオートインクリメントをリセットする。
-     * 
-     * @param path 接続情報を記述したプロパティファイルのパスを指定する。
      */
-    public void resetNo(String path) {
-        this.initStatus();
-
-        MySqlController msc = new MySqlController(path);
-        // DB 接続を開始
-        msc.openConnection();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            return;
-        }
-
+    public void resetNo() {
         // Statement の生成
-        PreparedStatement ps = msc.openStatement("ALTER TABLE t_zip_code auto_increment=1;");
-        this.setCode(msc.getCode());
+        PreparedStatement ps = this.openReadOnlyStatement("ALTER TABLE t_zip_code auto_increment=1;");
 
         if (this.getCode() == 1) {
-            msc.closeConnection();
+            this.closeConnection();
+            this.setCode(1);
             return;
         }
 
@@ -121,55 +75,26 @@ public class TZipCodeController extends StatusController {
         try {
             ps.executeUpdate();
             this.setCode(2);
-            this.setMessage(null);
         } catch (SQLException e) {
             this.setMessage("エラーが発生しました。 " + e.toString());
+            this.closeStatement();
+            this.closeConnection();
             this.errorTerminate();
-
-            msc.closeStatement();
-            msc.closeConnection();
-            return;
         }
-
-        // DB 接続を切断
-        msc.closeStatement();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            msc.closeConnection();
-            return;
-        }
-
-        msc.closeConnection();
-        this.setCode(msc.getCode());
     }
 
     /**
      * t_zip_code テーブルへ CSV データを一括登録する。
      * 
-     * @param path      接続情報を記述したプロパティファイルのパスを指定する。
      * @param recordset t_zip_code テーブルへ登録する CSV データのリストを指定する。
      */
-    public void insertRecord(String path, List<String[]> recordset) {
-        this.initStatus();
-
-        MySqlController msc = new MySqlController(path);
-        // DB 接続を開始
-        msc.openConnection();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            return;
-        }
-
+    public void insertRecord(List<String[]> recordset) {
         // Statement の生成
-        msc.setResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        msc.setResultSetConcurrency(ResultSet.CONCUR_UPDATABLE);
-        PreparedStatement ps = msc.openStatement("SELECT * FROM t_zip_code;");
-        this.setCode(msc.getCode());
+        PreparedStatement ps = this.openWritableStatement("SELECT * FROM t_zip_code;");
 
         if (this.getCode() == 1) {
-            msc.closeConnection();
+            this.closeConnection();
+            this.setCode(1);
             return;
         }
 
@@ -199,37 +124,17 @@ public class TZipCodeController extends StatusController {
             }
 
             System.out.println(insertCount + " 件のレコードを追加しました。");
+
+            if (insertCount > 0) {
+                this.setCode(2);
+            } else {
+                this.initStatus();
+            }
         } catch (SQLException e) {
             this.setMessage("エラーが発生しました。 " + e.toString());
+            this.closeStatement();
+            this.closeConnection();
             this.errorTerminate();
-
-            msc.closeStatement();
-            msc.closeConnection();
-            return;
-        }
-
-        // DB 接続を切断
-        msc.closeStatement();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            msc.closeConnection();
-            return;
-        }
-
-        msc.closeConnection();
-        this.setCode(msc.getCode());
-
-        if (this.getCode() == 1) {
-            return;
-        }
-
-        // 終了ステータスの設定
-        if (insertCount != 0) {
-            this.setCode(2);
-            this.setMessage(null);
-        } else {
-            this.initStatus();
         }
     }
 }
