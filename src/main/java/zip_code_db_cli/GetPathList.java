@@ -12,16 +12,15 @@ import status_resource.StatusController;
  * 指定したディレクトリ配下に存在するファイルの一覧を取得する。
  */
 public class GetPathList extends StatusController {
-    private String path;
-    private String extension;
+    private PathProperties plp = new PathProperties();
 
     /**
-     * @param path      検索対象とするディレクトリのパスを指定する。
-     * @param extension 検索対象とするファイルの拡張子を指定する。
+     * @param path      ファイル一覧取得対象とするディレクトリのパスを指定する。
+     * @param extension 取得対象とするファイルの拡張子を指定する。
      */
-    public GetPathList(String path, String extension) {
-        this.path = path;
-        this.extension = extension;
+    public void init(String path, String extension) {
+        plp.setDirPath(path);
+        plp.setExtension(extension);
     }
 
     /**
@@ -37,7 +36,7 @@ public class GetPathList extends StatusController {
 
             @Override
             public boolean accept(File dir, String name) {
-                if (name.toLowerCase().endsWith(extension)) {
+                if (name.toLowerCase().endsWith(plp.getExtension())) {
                     return true;
                 } else {
                     return false;
@@ -45,10 +44,10 @@ public class GetPathList extends StatusController {
             }
         };
 
-        File directory = new File(this.path);
+        File directory = new File(plp.getDirPath());
 
         if (directory.isDirectory() == false) {
-            this.setMessage(this.path + " が見つかりません。");
+            this.setMessage(plp.getDirPath() + " が見つかりません。");
             this.errorTerminate();
             return pathList;
         }
