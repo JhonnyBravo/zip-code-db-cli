@@ -10,51 +10,75 @@ import gnu.getopt.LongOpt;
  */
 public class Main {
     /**
-     * @param args -i, --initialize &lt;configPath&gt; &lt;directoryPath&gt;
+     * @param args
+     *             <ol>
+     *             <li>-c, --configPath &lt;path&gt; DB 接続時に使用する設定ファイルのパスを指定する。</li>
+     *             <li>-d, --dirPath &lt;path&gt; インポート対象とする CSV
+     *             ファイルが格納されているディレクトリのパスを指定する。</li>
+     *             </ol>
      */
     public static void main(String[] args) {
-        LongOpt[] longopts = new LongOpt[1];
-        longopts[0] = new LongOpt("initialize", LongOpt.REQUIRED_ARGUMENT, null, 'i');
+        LongOpt[] longopts = new LongOpt[2];
+        longopts[0] = new LongOpt("configPath", LongOpt.REQUIRED_ARGUMENT, null, 'c');
+        longopts[1] = new LongOpt("dirPath", LongOpt.REQUIRED_ARGUMENT, null, 'd');
 
-        Getopt options = new Getopt("Main", args, "i:", longopts);
+        Getopt options = new Getopt("Main", args, "c:d:", longopts);
 
         int c;
-        int iFlag = 0;
+        int cFlag = 0;
+        int dFlag = 0;
 
-        String dirPath = null;
         String configPath = null;
+        String dirPath = null;
 
         while ((c = options.getopt()) != -1) {
             switch (c) {
-            case 'i':
-                configPath = args[1];
-                dirPath = args[2];
-                iFlag = 1;
+            case 'c':
+                configPath = options.getOptarg();
+                cFlag = 1;
+                break;
+            case 'd':
+                dirPath = options.getOptarg();
+                dFlag = 1;
                 break;
             }
         }
 
-        if (iFlag == 1) {
+        if (cFlag == 1 && dFlag == 1) {
             // ファイルリストを取得。
-            GetPathList gpl = new GetPathList(dirPath, "csv");
+            GetPathList gpl = new GetPathList();
+            gpl.init(dirPath, "csv");
             List<String> pathList = gpl.runCommand();
 
             if (gpl.getCode() != 2) {
                 System.exit(gpl.getCode());
             }
 
-            // 既存レコードを削除。
             TZipCodeController tzcc = new TZipCodeController();
-            tzcc.deleteRecord(configPath);
+            tzcc.init(configPath);
+
+            // DB へ接続。
+            tzcc.openConnection();
 
             if (tzcc.getCode() == 1) {
                 System.exit(tzcc.getCode());
             }
 
-            tzcc.resetNo(configPath);
+            // 既存レコードを削除。
+            tzcc.deleteRecord();
 
             if (tzcc.getCode() == 1) {
-                System.exit(tzcc.getCode());
+                tzcc.closeStatement();
+                tzcc.closeConnection();
+                System.exit(1);
+            }
+
+            tzcc.resetNo();
+
+            if (tzcc.getCode() == 1) {
+                tzcc.closeStatement();
+                tzcc.closeConnection();
+                System.exit(1);
             }
 
             for (String path : pathList) {
@@ -62,17 +86,23 @@ public class Main {
                 List<String[]> recordset = tzcc.importCsv(path);
 
                 if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                    tzcc.closeStatement();
+                    tzcc.closeConnection();
+                    System.exit(1);
                 }
 
                 // 新規レコードを登録。
-                tzcc.insertRecord(configPath, recordset);
+                tzcc.insertRecord(recordset);
 
                 if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                    tzcc.closeStatement();
+                    tzcc.closeConnection();
+                    System.exit(1);
                 }
             }
 
+            tzcc.closeStatement();
+            tzcc.closeConnection();
             System.exit(tzcc.getCode());
         }
     }
