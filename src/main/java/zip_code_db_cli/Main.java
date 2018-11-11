@@ -57,28 +57,11 @@ public class Main {
             TZipCodeController tzcc = new TZipCodeController();
             tzcc.init(configPath);
 
-            // DB へ接続。
-            tzcc.openConnection();
-
-            if (tzcc.getCode() == 1) {
-                System.exit(tzcc.getCode());
-            }
-
             // 既存レコードを削除。
             tzcc.deleteRecord();
 
             if (tzcc.getCode() == 1) {
-                tzcc.closeStatement();
-                tzcc.closeConnection();
-                System.exit(1);
-            }
-
-            tzcc.resetNo();
-
-            if (tzcc.getCode() == 1) {
-                tzcc.closeStatement();
-                tzcc.closeConnection();
-                System.exit(1);
+                System.exit(tzcc.getCode());
             }
 
             for (String path : pathList) {
@@ -86,23 +69,17 @@ public class Main {
                 List<String[]> recordset = tzcc.importCsv(path);
 
                 if (tzcc.getCode() == 1) {
-                    tzcc.closeStatement();
-                    tzcc.closeConnection();
-                    System.exit(1);
+                    System.exit(tzcc.getCode());
                 }
 
                 // 新規レコードを登録。
                 tzcc.insertRecord(recordset);
 
                 if (tzcc.getCode() == 1) {
-                    tzcc.closeStatement();
-                    tzcc.closeConnection();
-                    System.exit(1);
+                    System.exit(tzcc.getCode());
                 }
             }
 
-            tzcc.closeStatement();
-            tzcc.closeConnection();
             System.exit(tzcc.getCode());
         }
     }
