@@ -1,27 +1,37 @@
 package zip_code_db_cli;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 import csv_resource.CsvController;
-import mysql_resource.DaoController;
+import mysql_resource.ConnectionController;
+import mysql_resource.StatementController;
+import status_resource.StatusController;
 
 /**
  * t_zip_code テーブルのレコード操作を管理する。
  */
-public class TZipCodeController extends DaoController {
+public class TZipCodeController extends StatusController {
     private CsvController ctrlCsv = new CsvController();
+    private ConnectionController ctrlConnection = new ConnectionController();
+    private StatementController ctrlStatement = new StatementController();
+
+    public void init(String path) {
+        ctrlConnection.init(path);
+    }
 
     /**
      * @param path インポート対象とするファイルのパスを指定する。
      * @return List&lt;String[]&gt; CSV のデータを文字列配列のリストに変換して返す。
      */
     public List<String[]> importCsv(String path) {
-        List<String[]> recordset = ctrlCsv.getRecordset(path, "MS932");
+        this.initStatus();
 
+        List<String[]> recordset = ctrlCsv.getRecordset(path, "MS932");
         this.setCode(ctrlCsv.getCode());
+
         return recordset;
     }
 
@@ -29,57 +39,66 @@ public class TZipCodeController extends DaoController {
      * t_zip_code テーブルからレコードを削除する。
      */
     public void deleteRecord() {
-        // Statement の生成
-        PreparedStatement ps = this.openReadOnlyStatement("DELETE FROM t_zip_code;");
+        this.initStatus();
+
+        // Connection Open
+        ctrlConnection.openConnection(false);
+        this.setCode(ctrlConnection.getCode());
 
         if (this.getCode() == 1) {
-            this.closeConnection();
-            this.setCode(1);
             return;
         }
 
-        // クエリの実行
-        int deleteCount = 0;
+        Connection connection = ctrlConnection.getConnection();
+        this.setCode(ctrlConnection.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlConnection.closeConnection();
+            return;
+        }
+
+        // PreparedStatement Open
+        ctrlStatement.init(connection);
+
+        ctrlStatement.openStatement("DELETE FROM t_zip_code;");
+        this.setCode(ctrlStatement.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlConnection.closeConnection();
+            return;
+        }
+
+        PreparedStatement ps = ctrlStatement.getStatement();
+        this.setCode(ctrlStatement.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlStatement.closeStatement();
+            ctrlConnection.closeConnection();
+        }
 
         try {
-            deleteCount = ps.executeUpdate();
-            System.out.println(deleteCount + " 件のレコードを削除しました。");
+            ps.addBatch();
+            ps.addBatch("ALTER TABLE t_zip_code auto_increment=1;");
 
-            if (deleteCount > 0) {
-                this.setCode(2);
-            } else {
-                this.initStatus();
+            // SQL 実行
+            int[] results = ps.executeBatch();
+            System.out.println(results[0] + " 件のレコードを削除しました。");
+
+            ctrlConnection.commit();
+            this.setCode(ctrlConnection.getCode());
+
+            if (this.getCode() == 1) {
+                ctrlConnection.rollback();
             }
         } catch (SQLException e) {
             this.setMessage("エラーが発生しました。 " + e.toString());
-            this.closeStatement();
-            this.closeConnection();
             this.errorTerminate();
-        }
-    }
-
-    /**
-     * t_zip_code.no のオートインクリメントをリセットする。
-     */
-    public void resetNo() {
-        // Statement の生成
-        PreparedStatement ps = this.openReadOnlyStatement("ALTER TABLE t_zip_code auto_increment=1;");
-
-        if (this.getCode() == 1) {
-            this.closeConnection();
-            this.setCode(1);
-            return;
-        }
-
-        // クエリの実行
-        try {
-            ps.executeUpdate();
-            this.setCode(2);
-        } catch (SQLException e) {
-            this.setMessage("エラーが発生しました。 " + e.toString());
-            this.closeStatement();
-            this.closeConnection();
-            this.errorTerminate();
+        } finally {
+            // 終了処理
+            ctrlStatement.closeStatement();
+            this.setCode(ctrlStatement.getCode());
+            ctrlConnection.closeConnection();
+            this.setCode(ctrlConnection.getCode());
         }
     }
 
@@ -89,52 +108,99 @@ public class TZipCodeController extends DaoController {
      * @param recordset t_zip_code テーブルへ登録する CSV データのリストを指定する。
      */
     public void insertRecord(List<String[]> recordset) {
-        // Statement の生成
-        PreparedStatement ps = this.openWritableStatement("SELECT * FROM t_zip_code;");
+        this.initStatus();
+
+        ctrlConnection.openConnection(false);
+        this.setCode(ctrlConnection.getCode());
 
         if (this.getCode() == 1) {
-            this.closeConnection();
-            this.setCode(1);
             return;
         }
 
-        // レコードを追加
-        int insertCount = 0;
-        ResultSet rs = null;
+        Connection connection = ctrlConnection.getConnection();
+        this.setCode(ctrlConnection.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlConnection.closeConnection();
+            return;
+        }
+
+        ctrlStatement.init(connection);
+
+        ctrlStatement.openStatement("INSERT INTO t_zip_code"
+                + " (jis_code,zip_code,prefecture_phonetic,city_phonetic,area_phonetic,prefecture,city,area,update_flag,reason_flag)"
+                + " VALUES(?,?,?,?,?,?,?,?,?,?);");
+        this.setCode(ctrlStatement.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlConnection.closeConnection();
+            return;
+        }
+
+        PreparedStatement ps = ctrlStatement.getStatement();
+        this.setCode(ctrlStatement.getCode());
+
+        if (this.getCode() == 1) {
+            ctrlStatement.closeStatement();
+            ctrlConnection.closeConnection();
+            return;
+        }
+
+        int count = 0;
+
+        for (String[] record : recordset) {
+            try {
+                ps.setString(1, record[0]);// jis_code
+                ps.setString(2, record[2]);// zip_code
+                ps.setString(3, record[3]);// prefecture_phonetic
+                ps.setString(4, record[4]);// city_phonetic
+                ps.setString(5, record[5]);// area_phonetic
+                ps.setString(6, record[6]);// prefecture
+                ps.setString(7, record[7]);// city
+                ps.setString(8, record[8]);// area
+                ps.setInt(9, Integer.parseInt(record[13]));// update_flag
+                ps.setInt(10, Integer.parseInt(record[14]));// reason_flag
+                ps.addBatch();
+
+                count++;
+
+                if (count % 1000 == 0) {
+                    ps.executeBatch();
+                    ctrlConnection.commit();
+                    this.setCode(ctrlConnection.getCode());
+
+                    if (this.getCode() == 1) {
+                        ctrlConnection.rollback();
+                        ctrlStatement.closeStatement();
+                        ctrlConnection.closeConnection();
+                        return;
+                    }
+                }
+            } catch (SQLException e) {
+                this.setMessage("エラーが発生しました。 " + e.toString());
+                this.errorTerminate();
+
+                ctrlStatement.closeStatement();
+                ctrlConnection.closeConnection();
+            }
+        }
 
         try {
-            rs = ps.executeQuery();
+            ps.executeBatch();
+            System.out.println(count + " 件のレコードを追加しました。");
 
-            for (String[] record : recordset) {
-                rs.moveToInsertRow();
+            ctrlConnection.commit();
+            this.setCode(ctrlConnection.getCode());
 
-                rs.updateString("jis_code", record[0]);
-                rs.updateString("zip_code", record[2]);
-                rs.updateString("prefecture_phonetic", record[3]);
-                rs.updateString("city_phonetic", record[4]);
-                rs.updateString("area_phonetic", record[5]);
-                rs.updateString("prefecture", record[6]);
-                rs.updateString("city", record[7]);
-                rs.updateString("area", record[8]);
-                rs.updateInt("update_flag", Integer.parseInt(record[13]));
-                rs.updateInt("reason_flag", Integer.parseInt(record[14]));
-
-                rs.insertRow();
-                ++insertCount;
-            }
-
-            System.out.println(insertCount + " 件のレコードを追加しました。");
-
-            if (insertCount > 0) {
-                this.setCode(2);
-            } else {
-                this.initStatus();
+            if (this.getCode() == 1) {
+                ctrlConnection.rollback();
             }
         } catch (SQLException e) {
             this.setMessage("エラーが発生しました。 " + e.toString());
-            this.closeStatement();
-            this.closeConnection();
             this.errorTerminate();
+        } finally {
+            ctrlStatement.closeStatement();
+            ctrlConnection.closeConnection();
         }
     }
 }
