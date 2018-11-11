@@ -12,7 +12,6 @@ public class TZipCodeControllerTest {
     /**
      * {@link zip_code_db_cli.TZipCodeController#importCsv(java.lang.String)},
      * {@link zip_code_db_cli.TZipCodeController#deleteRecord()},
-     * {@link zip_code_db_cli.TZipCodeController#resetNo()},
      * {@link zip_code_db_cli.TZipCodeController#insertRecord(List)},
      * {@link zip_code_db_cli.TZipCodeController#getCode()} のためのテスト・メソッド。
      */
@@ -26,27 +25,12 @@ public class TZipCodeControllerTest {
         assertEquals(5, recordset.size());
 
         // レコード登録ができること。
-        tzcc.openConnection();
-        assertEquals(2, tzcc.getCode());
-
         tzcc.deleteRecord();
-        tzcc.resetNo();
-
         tzcc.insertRecord(recordset);
         assertEquals(2, tzcc.getCode());
 
         // レコード削除時の終了コードが正しく設定されること。
         tzcc.deleteRecord();
-        assertEquals(2, tzcc.getCode());
-
-        // id のカウンターリセット時の終了コードが正しく設定されること。
-        tzcc.resetNo();
-        assertEquals(2, tzcc.getCode());
-
-        tzcc.closeStatement();
-        assertEquals(2, tzcc.getCode());
-
-        tzcc.closeConnection();
         assertEquals(2, tzcc.getCode());
     }
 }
