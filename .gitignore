@@ -65,7 +65,8 @@ gradle-app.setting
 # # TeXlipse plugin
 # .texlipse
 #
-# # STS (Spring Tool Suite)
+# STS (Spring Tool Suite)
+application.properties
 # .springBeans
 #
 # # Code Recommenders
