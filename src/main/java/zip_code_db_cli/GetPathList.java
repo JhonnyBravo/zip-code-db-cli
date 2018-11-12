@@ -6,13 +6,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.stereotype.Service;
+
 import status_resource.StatusController;
 
 /**
  * 指定したディレクトリ配下に存在するファイルの一覧を取得する。
  */
+@Service
+@Import({ StatusController.class })
 public class GetPathList extends StatusController {
-    private PathProperties plp = new PathProperties();
+    @Autowired
+    private PathProperties plp;
 
     /**
      * @param path      ファイル一覧取得対象とするディレクトリのパスを指定する。
