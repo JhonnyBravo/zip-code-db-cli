@@ -1,5 +1,11 @@
 package zip_code_db_cli;
 
+import org.springframework.stereotype.Service;
+
+/**
+ * ファイル一覧取得時に使用するプロパティを管理する。
+ */
+@Service
 public class PathProperties {
     private String dirPath;
     private String extension;
