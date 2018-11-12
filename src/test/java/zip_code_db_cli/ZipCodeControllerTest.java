@@ -5,20 +5,25 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-public class TZipCodeControllerTest {
-    private TZipCodeController tzcc = new TZipCodeController();
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ZipCodeControllerTest {
+    @Autowired
+    private ZipCodeController tzcc;
 
     /**
-     * {@link zip_code_db_cli.TZipCodeController#importCsv(java.lang.String)},
-     * {@link zip_code_db_cli.TZipCodeController#deleteRecord()},
-     * {@link zip_code_db_cli.TZipCodeController#insertRecord(List)},
-     * {@link zip_code_db_cli.TZipCodeController#getCode()} のためのテスト・メソッド。
+     * {@link zip_code_db_cli.ZipCodeController#importCsv(java.lang.String)},
+     * {@link zip_code_db_cli.ZipCodeController#deleteRecord()},
+     * {@link zip_code_db_cli.ZipCodeController#insertRecord(List)},
+     * {@link zip_code_db_cli.ZipCodeController#getCode()} のためのテスト・メソッド。
      */
     @Test
     public void test1() {
-        tzcc.init("src/test/resources/test1.properties");
-
         // CSV の読込ができること。
         List<String[]> recordset = tzcc.importCsv("src/test/resources/test.csv");
         assertEquals(2, tzcc.getCode());
