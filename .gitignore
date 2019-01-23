@@ -15,6 +15,7 @@ local.properties
 
 # Java
 src/test/resources/*.properties
+src/main/resources
 
 # Gradle
 .gradle
