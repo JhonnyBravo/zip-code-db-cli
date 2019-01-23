@@ -2,6 +2,7 @@ package zip_code_db_cli;
 
 import java.util.List;
 
+import csv_resource.CsvController;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
 
@@ -10,23 +11,17 @@ import gnu.getopt.LongOpt;
  */
 public class Main {
     /**
-     * @param args
-     *             <ol>
-     *             <li>-c, --configPath &lt;path&gt; DB 接続時に使用する設定ファイルのパスを指定する。</li>
-     *             <li>-d, --dirPath &lt;path&gt; インポート対象とする CSV
-     *             ファイルが格納されているディレクトリのパスを指定する。</li>
-     *             </ol>
+     * @param args -c, --configPath &lt;path&gt; DB 接続情報と CSV
+     *             取得元ディレクトリのパスを記述した設定ファイルのパスを指定する。
      */
     public static void main(String[] args) {
-        LongOpt[] longopts = new LongOpt[2];
+        LongOpt[] longopts = new LongOpt[1];
         longopts[0] = new LongOpt("configPath", LongOpt.REQUIRED_ARGUMENT, null, 'c');
-        longopts[1] = new LongOpt("dirPath", LongOpt.REQUIRED_ARGUMENT, null, 'd');
 
-        Getopt options = new Getopt("Main", args, "c:d:", longopts);
+        Getopt options = new Getopt("Main", args, "c:", longopts);
 
         int c;
         int cFlag = 0;
-        int dFlag = 0;
 
         String configPath = null;
         String dirPath = null;
@@ -37,50 +32,63 @@ public class Main {
                 configPath = options.getOptarg();
                 cFlag = 1;
                 break;
-            case 'd':
-                dirPath = options.getOptarg();
-                dFlag = 1;
-                break;
             }
         }
 
-        if (cFlag == 1 && dFlag == 1) {
-            // ファイルリストを取得。
-            GetPathList gpl = new GetPathList();
-            gpl.init(dirPath, "csv");
-            List<String> pathList = gpl.runCommand();
+        if (cFlag == 1) {
+            ConfigurationProperties cp = new ConfigurationProperties();
+            cp.setPath(configPath);
+            dirPath = cp.getDirectoryPath();
 
-            if (gpl.getCode() != 2) {
-                System.exit(gpl.getCode());
+            if (cp.getCode() == 1) {
+                System.exit(cp.getCode());
             }
 
-            TZipCodeController tzcc = new TZipCodeController();
-            tzcc.init(configPath);
+            DirectoryController dc = new DirectoryController();
+            dc.setPath(dirPath);
+            List<String> pathList = dc.getPathList();
 
-            // 既存レコードを削除。
-            tzcc.deleteRecord();
-
-            if (tzcc.getCode() == 1) {
-                System.exit(tzcc.getCode());
+            if (dc.getCode() == 1) {
+                System.exit(dc.getCode());
             }
+
+            ZipCodeTable table = new ZipCodeTable();
+            table.setPath(configPath);
+            table.openConnection();
+
+            if (table.getCode() == 1) {
+                System.exit(table.getCode());
+            }
+
+            table.deleteRecord();
+
+            if (table.getCode() == 1) {
+                table.closeConnection();
+                System.exit(table.getCode());
+            }
+
+            CsvController csv = new CsvController();
 
             for (String path : pathList) {
-                // CSV 読込。
-                List<String[]> recordset = tzcc.importCsv(path);
+                csv.setPath(path);
+                csv.setEncoding("MS932");
+                List<String[]> recordset = csv.getContent();
 
-                if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                if (csv.getCode() == 1) {
+                    table.closeConnection();
+                    System.exit(csv.getCode());
                 }
 
-                // 新規レコードを登録。
-                tzcc.insertRecord(recordset);
+                table.insertRecord(recordset);
 
-                if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                if (table.getCode() == 1) {
+                    table.closeConnection();
+                    System.exit(table.getCode());
                 }
             }
 
-            System.exit(tzcc.getCode());
+            table.closeConnection();
+            System.exit(table.getCode());
         }
     }
 }
