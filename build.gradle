@@ -36,8 +36,8 @@ dependencies {
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
     compile group: 'gnu.getopt', name: 'java-getopt', version: '1.0.13'
-    compile 'com.github.JhonnyBravo:csv-resource:master-SNAPSHOT'
-    compile 'com.github.JhonnyBravo:mysql-resource:master-SNAPSHOT'
+    compile 'com.github.JhonnyBravo:context-resource:master-SNAPSHOT'
+    compile 'com.github.JhonnyBravo:basic-action-resource:master-SNAPSHOT'
 }
 
 task sourcesJar(type: Jar,dependsOn: classes){
