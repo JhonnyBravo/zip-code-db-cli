@@ -1,94 +1,92 @@
 package zip_code_db_cli;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Properties;
 
-import csv_resource.CsvController;
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
+import basic_action_resource.DirectoryResource;
+import context_resource.PropertiesResource;
 
 /**
- * t_zip_code テーブルへ郵便番号データを登録する。
+ * CSV から DB へレコードを一括登録する。
  */
 public class Main {
     /**
-     * @param args -c, --configPath &lt;path&gt; DB 接続情報と CSV
-     *             取得元ディレクトリのパスを記述した設定ファイルのパスを指定する。
+     * @param args レコード登録時に使用する設定ファイルのパスを指定する。
      */
     public static void main(String[] args) {
-        LongOpt[] longopts = new LongOpt[1];
-        longopts[0] = new LongOpt("configPath", LongOpt.REQUIRED_ARGUMENT, null, 'c');
+        if (args.length > 0) {
+            // directoryPath の取得
+            String configPath = args[0];
+            PropertiesResource pr = new PropertiesResource(configPath);
+            pr.openContext();
 
-        Getopt options = new Getopt("Main", args, "c:", longopts);
-
-        int c;
-        int cFlag = 0;
-
-        String configPath = null;
-        String dirPath = null;
-
-        while ((c = options.getopt()) != -1) {
-            switch (c) {
-            case 'c':
-                configPath = options.getOptarg();
-                cFlag = 1;
-                break;
-            }
-        }
-
-        if (cFlag == 1) {
-            ConfigurationProperties cp = new ConfigurationProperties();
-            cp.setPath(configPath);
-            dirPath = cp.getDirectoryPath();
-
-            if (cp.getCode() == 1) {
-                System.exit(cp.getCode());
+            if (pr.getCode() == 1) {
+                pr.closeContext();
+                System.exit(1);
             }
 
-            DirectoryController dc = new DirectoryController();
-            dc.setPath(dirPath);
-            List<String> pathList = dc.getPathList();
+            Properties p = (Properties) pr.getContext();
 
-            if (dc.getCode() == 1) {
-                System.exit(dc.getCode());
+            if (!p.containsKey("directoryPath")) {
+                System.err.println("directoryPath が定義されていません。 " + configPath + " を確認してください。");
+                pr.closeContext();
+                System.exit(1);
             }
 
-            ZipCodeTable table = new ZipCodeTable();
-            table.setPath(configPath);
-            table.openConnection();
+            String directoryPath = p.getProperty("directoryPath");
+            pr.closeContext();
 
-            if (table.getCode() == 1) {
-                System.exit(table.getCode());
+            // 既存レコードの削除
+            DBController dbc = new DBController(configPath);
+            dbc.deleteAll();
+
+            if (dbc.getCode() == 1) {
+                System.exit(1);
             }
 
-            table.deleteRecord();
+            // CSV リストの取得
+            DirectoryResource dr = new DirectoryResource(directoryPath);
+            dr.setFileFilter("csv");
+            File[] files = dr.getFiles();
 
-            if (table.getCode() == 1) {
-                table.closeConnection();
-                System.exit(table.getCode());
+            if (dr.getCode() == 1) {
+                System.exit(1);
             }
 
-            CsvController csv = new CsvController();
+            String csvPath = null;
+            CsvIterator ci = null;
 
-            for (String path : pathList) {
-                csv.setPath(path);
-                csv.setEncoding("MS932");
-                List<String[]> recordset = csv.getContent();
+            for (File f : files) {
+                try {
+                    // CSV から Iterator を取得
+                    csvPath = f.getCanonicalPath();
+                    ci = new CsvIterator(csvPath);
+                    ci.setEncoding("MS932");
+                    ci.openContext();
 
-                if (csv.getCode() == 1) {
-                    table.closeConnection();
-                    System.exit(csv.getCode());
-                }
+                    if (ci.getCode() == 1) {
+                        System.exit(1);
+                    }
 
-                table.insertRecord(recordset);
+                    Iterator<String[]> iterator = ci.iterator();
 
-                if (table.getCode() == 1) {
-                    table.closeConnection();
-                    System.exit(table.getCode());
+                    if (ci.getCode() == 1) {
+                        ci.closeContext();
+                        System.exit(1);
+                    }
+
+                    // CSV から DB へ一括登録
+                    dbc.insertAll(iterator);
+                    ci.closeContext();
+                } catch (IOException e) {
+                    System.err.println("エラーが発生しました。 " + e);
+                    System.exit(1);
                 }
             }
 
-            table.closeConnection();
-            System.exit(table.getCode());
+            System.exit(dbc.getCode());
         }
     }
 }
