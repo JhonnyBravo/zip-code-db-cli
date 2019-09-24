@@ -1,92 +1,99 @@
 package zip_code_db_cli;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Logger;
 
 import basic_action_resource.DirectoryResource;
-import context_resource.PropertiesResource;
+import content_resource.ContentResource;
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
+import property_resource.PropertyResource;
 
 /**
- * CSV から DB へレコードを一括登録する。
+ * 郵便番号データの CSV を MySQL へ一括登録する。
  */
 public class Main {
     /**
-     * @param args レコード登録時に使用する設定ファイルのパスを指定する。
+     * @param args
+     *             <ul>
+     *             <li>-i, --import &lt;config_path&gt; 引数に指定した設定ファイルに従って CSV を検出し、
+     *             MySQL へ一括登録する。</li>
+     *             </ul>
      */
     public static void main(String[] args) {
-        if (args.length > 0) {
-            // directoryPath の取得
-            String configPath = args[0];
-            PropertiesResource pr = new PropertiesResource(configPath);
-            pr.openContext();
+        final LongOpt[] longopts = new LongOpt[1];
+        longopts[0] = new LongOpt("import", LongOpt.REQUIRED_ARGUMENT, null, 'i');
 
-            if (pr.getCode() == 1) {
-                pr.closeContext();
-                System.exit(1);
+        final Getopt options = new Getopt("Main", args, "i:", longopts);
+
+        final Logger logger = Logger.getLogger(Main.class.getName());
+        logger.addHandler(new ConsoleHandler());
+        logger.setUseParentHandlers(false);
+
+        String configPath = null;
+
+        ContentResource<Map<String, String>> pr = null;
+        Map<String, String> properties = new HashMap<String, String>();
+
+        int c;
+        int importFlag = 0;
+
+        while ((c = options.getopt()) != -1) {
+            switch (c) {
+            case 'i':
+                configPath = options.getOptarg();
+                importFlag = 1;
+                break;
             }
+        }
 
-            Properties p = (Properties) pr.getContext();
+        boolean status = false;
 
-            if (!p.containsKey("directoryPath")) {
-                System.err.println("directoryPath が定義されていません。 " + configPath + " を確認してください。");
-                pr.closeContext();
-                System.exit(1);
-            }
+        try {
+            if (importFlag == 1) {
+                pr = new PropertyResource(configPath);
+                pr.setEncoding("UTF8");
+                properties = pr.getContent();
 
-            String directoryPath = p.getProperty("directoryPath");
-            pr.closeContext();
-
-            // 既存レコードの削除
-            DBController dbc = new DBController(configPath);
-            dbc.deleteAll();
-
-            if (dbc.getCode() == 1) {
-                System.exit(1);
-            }
-
-            // CSV リストの取得
-            DirectoryResource dr = new DirectoryResource(directoryPath);
-            dr.setFileFilter("csv");
-            File[] files = dr.getFiles();
-
-            if (dr.getCode() == 1) {
-                System.exit(1);
-            }
-
-            String csvPath = null;
-            CsvIterator ci = null;
-
-            for (File f : files) {
-                try {
-                    // CSV から Iterator を取得
-                    csvPath = f.getCanonicalPath();
-                    ci = new CsvIterator(csvPath);
-                    ci.setEncoding("MS932");
-                    ci.openContext();
-
-                    if (ci.getCode() == 1) {
-                        System.exit(1);
-                    }
-
-                    Iterator<String[]> iterator = ci.iterator();
-
-                    if (ci.getCode() == 1) {
-                        ci.closeContext();
-                        System.exit(1);
-                    }
-
-                    // CSV から DB へ一括登録
-                    dbc.insertAll(iterator);
-                    ci.closeContext();
-                } catch (IOException e) {
-                    System.err.println("エラーが発生しました。 " + e);
+                if (!properties.containsKey("csvPath")) {
+                    logger.warning("csvPath の指定がありません。設定ファイルを確認してください。");
                     System.exit(1);
                 }
+
+                final DirectoryResource dr = new DirectoryResource(properties.get("csvPath"));
+                dr.setFileFilter("csv");
+                final File[] files = dr.getFiles();
+
+                if (files.length == 0) {
+                    System.exit(0);
+                }
+
+                logger.info("テーブルを初期化しています......");
+                final ImportResource<List<ZipCode>> dbCtrl = new ZipCodeController(properties);
+                status = dbCtrl.delete();
+
+                for (final File file : files) {
+                    logger.info(file.getCanonicalPath() + " をインポートしています......");
+                    final CsvResource reader = new CsvResource(file.getCanonicalPath());
+                    final List<ZipCode> contents = reader.getContent();
+                    status = dbCtrl.create(contents);
+                }
+
+                logger.info("完了しました。");
             }
 
-            System.exit(dbc.getCode());
+            if (status) {
+                System.exit(2);
+            } else {
+                System.exit(0);
+            }
+        } catch (final Exception e) {
+            logger.warning(e.toString());
+            System.exit(1);
         }
     }
 }
