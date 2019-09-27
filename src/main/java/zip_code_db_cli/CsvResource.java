@@ -1,9 +1,5 @@
 package zip_code_db_cli;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -12,19 +8,17 @@ import java.util.List;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 
+import content_resource.ContentResource;
+
 /**
  * CSV の読み書きを管理する。
  */
-public class CsvResource {
-    private final String path;
-    private final File file;
-
+public class CsvResource extends IOFileResource implements ContentResource<List<ZipCode>> {
     /**
      * @param path 操作対象とする CSV のパスを指定する。
      */
     public CsvResource(String path) {
-        this.path = path;
-        file = new File(path);
+        super(path);
     }
 
     /**
@@ -38,14 +32,11 @@ public class CsvResource {
      *         </ul>
      * @throws Exception {@link java.lang.Exception}
      */
+    @Override
     public boolean setContent(List<ZipCode> model) throws Exception {
         boolean status = false;
 
-        if (!file.isFile()) {
-            throw new FileNotFoundException(path + " が見つかりません。");
-        }
-
-        try (Writer writer = new FileWriter(path)) {
+        try (Writer writer = getWriter()) {
             new StatefulBeanToCsvBuilder<ZipCode>(writer).build().write(model);
             status = true;
         }
@@ -57,14 +48,11 @@ public class CsvResource {
      * @return content CSV を読込み、 List に変換して返す。
      * @throws Exception {@link java.lang.Exception}
      */
+    @Override
     public List<ZipCode> getContent() throws Exception {
         List<ZipCode> contents = new ArrayList<ZipCode>();
 
-        if (!file.isFile()) {
-            throw new FileNotFoundException(path + " が見つかりません。");
-        }
-
-        try (Reader reader = new FileReader(path)) {
+        try (Reader reader = getReader()) {
             contents = new CsvToBeanBuilder<ZipCode>(reader).withType(ZipCode.class).build().parse();
         }
 
@@ -73,7 +61,7 @@ public class CsvResource {
 
     /**
      * CSV を空にする。
-     * 
+     *
      * @return status
      *         <ul>
      *         <li>true: 削除に成功したことを表す。</li>
@@ -81,6 +69,7 @@ public class CsvResource {
      *         </ul>
      * @throws Exception {@link java.lang.Exception}
      */
+    @Override
     public boolean deleteContent() throws Exception {
         boolean status = false;
 
