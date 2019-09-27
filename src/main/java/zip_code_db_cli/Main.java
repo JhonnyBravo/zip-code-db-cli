@@ -4,8 +4,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import basic_action_resource.DirectoryResource;
 import content_resource.ContentResource;
@@ -29,10 +30,7 @@ public class Main {
         longopts[0] = new LongOpt("import", LongOpt.REQUIRED_ARGUMENT, null, 'i');
 
         final Getopt options = new Getopt("Main", args, "i:", longopts);
-
-        final Logger logger = Logger.getLogger(Main.class.getName());
-        logger.addHandler(new ConsoleHandler());
-        logger.setUseParentHandlers(false);
+        final Logger logger = LoggerFactory.getLogger(Main.class);
 
         String configPath = null;
 
@@ -56,11 +54,10 @@ public class Main {
         try {
             if (importFlag == 1) {
                 pr = new PropertyResource(configPath);
-                pr.setEncoding("UTF8");
                 properties = pr.getContent();
 
                 if (!properties.containsKey("csvPath")) {
-                    logger.warning("csvPath の指定がありません。設定ファイルを確認してください。");
+                    logger.warn("csvPath の指定がありません。設定ファイルを確認してください。");
                     System.exit(1);
                 }
 
@@ -92,7 +89,7 @@ public class Main {
                 System.exit(0);
             }
         } catch (final Exception e) {
-            logger.warning(e.toString());
+            logger.warn("エラーが発生しました。", e);
             System.exit(1);
         }
     }
