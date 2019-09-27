@@ -26,7 +26,6 @@ public class ZipCodeControllerTest {
         public void setUp() throws Exception {
             final ContentResource<Map<String, String>> pr = new PropertyResource(
                     "src/test/resources/config.properties");
-            pr.setEncoding("UTF8");
             final Map<String, String> properties = pr.getContent();
 
             fr = new FindRecord(properties);
@@ -98,7 +97,6 @@ public class ZipCodeControllerTest {
         public void setUp() throws Exception {
             final ContentResource<Map<String, String>> pr = new PropertyResource(
                     "src/test/resources/config.properties");
-            pr.setEncoding("UTF8");
             final Map<String, String> properties = pr.getContent();
 
             fr = new FindRecord(properties);
