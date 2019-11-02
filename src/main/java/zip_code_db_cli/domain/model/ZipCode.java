@@ -1,8 +1,12 @@
-package zip_code_db_cli;
+package zip_code_db_cli.domain.model;
+
+import java.io.Serializable;
 
 import com.opencsv.bean.CsvBindByPosition;
 
-public class ZipCode {
+public class ZipCode implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     // MySQL 用のレコード識別しとして使用する。 CSV の読書きには使用しない。
     private long id;
     @CsvBindByPosition(position = 0)
