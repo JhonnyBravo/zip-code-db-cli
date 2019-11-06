@@ -2,14 +2,15 @@ package zip_code_db_cli.domain.service.zip_code;
 
 import java.util.List;
 
+import java_itamae_connection.domain.service.connection.ConnectionService;
 import zip_code_db_cli.domain.model.ZipCode;
 
-public interface ZipCodeService {
+public abstract class ZipCodeService extends ConnectionService {
     /**
      * @return テーブルからレコードを全件取得する。
      * @throws Exception {@link java.lang.Exception}
      */
-    public List<ZipCode> findAll() throws Exception;
+    public abstract List<ZipCode> findAll() throws Exception;
 
     /**
      * テーブルへレコードを一括登録する。
@@ -22,7 +23,7 @@ public interface ZipCodeService {
      *         </ul>
      * @throws Exception {@link java.lang.Exception}
      */
-    public boolean create(List<ZipCode> recordset) throws Exception;
+    public abstract boolean create(List<ZipCode> recordset) throws Exception;
 
     /**
      * テーブルからレコードを全件削除する。
@@ -34,5 +35,5 @@ public interface ZipCodeService {
      *         </ul>
      * @throws Exception {@link java.lang.Exception}
      */
-    public boolean deleteAll() throws Exception;
+    public abstract boolean deleteAll() throws Exception;
 }
