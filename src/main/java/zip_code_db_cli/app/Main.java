@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
+import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
+import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_properties.domain.service.properties.PropertiesService;
 import java_itamae_properties.domain.service.properties.PropertiesServiceImpl;
@@ -71,7 +73,8 @@ public class Main {
                     }
                 };
 
-                final ZipCodeService zcs = new ZipCodeServiceImpl(config);
+                final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
+                final ZipCodeService zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(config));
                 zcs.deleteAll();
 
                 final File[] files = directory.listFiles(filter);
