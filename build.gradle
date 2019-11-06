@@ -22,9 +22,7 @@ repositories {
 
 dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '4.1'
-    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.11'
-    compile 'com.github.JhonnyBravo:java-itamae-contents:master-SNAPSHOT'
-    compile 'com.github.JhonnyBravo:java-itamae-properties:master-SNAPSHOT'
+    compile 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }
