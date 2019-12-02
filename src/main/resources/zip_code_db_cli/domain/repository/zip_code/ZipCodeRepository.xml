@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- t_zip_code からレコードを取得する。 -->
+<mapper namespace="zip_code_db_cli.domain.repository.zip_code.ZipCodeRepository">
+    <resultMap id="zipcode" type="zip_code_db_cli.domain.model.ZipCode">
+        <id property="id" column="id" />
+        <result property="jisCode" column="jis_code" />
+        <result property="zipCode" column="zip_code" />
+        <result property="prefecturePhonetic" column="prefecture_phonetic" />
+        <result property="cityPhonetic" column="city_phonetic" />
+        <result property="areaPhonetic" column="area_phonetic" />
+        <result property="prefecture" column="prefecture" />
+        <result property="city" column="city" />
+        <result property="area" column="area" />
+        <result property="updateFlag" column="update_flag" />
+        <result property="reasonFlag" column="reason_flag" />
+    </resultMap>
+    <!-- レコードを全件取得する。 -->
+    <select id="findAll" resultMap="zipcode">
+        SELECT * FROM t_zip_code;
+    </select>
+    <!-- レコードを全件削除する。 -->
+    <delete id="deleteAll">
+        DELETE FROM t_zip_code;
+    </delete>
+    <!-- id のカウンターを 1 にリセットする。 -->
+    <update id="resetId">
+        ALTER TABLE t_zip_code auto_increment=1;
+    </update>
+    <!-- レコードを一括登録する。 -->
+    <insert id="create" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_zip_code (jis_code, zip_code, prefecture_phonetic, city_phonetic,
+        area_phonetic, prefecture, city, area, update_flag, reason_flag) VALUES
+        <foreach item="ZipCode" collection="list" separator=",">
+            (#{ZipCode.jisCode},
+            #{ZipCode.zipCode}, #{ZipCode.prefecturePhonetic}, #{ZipCode.cityPhonetic},
+            #{ZipCode.areaPhonetic}, #{ZipCode.prefecture}, #{ZipCode.city}, #{ZipCode.area},
+            #{ZipCode.updateFlag}, #{ZipCode.reasonFlag})
+        </foreach>
+        ;
+    </insert>
+</mapper>
