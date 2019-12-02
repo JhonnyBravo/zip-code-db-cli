@@ -11,9 +11,6 @@ local.properties
 .loadpath
 .recommenders
 
-# Java
-src/main/resources
-
 # Gradle
 .gradle
 gradlew
