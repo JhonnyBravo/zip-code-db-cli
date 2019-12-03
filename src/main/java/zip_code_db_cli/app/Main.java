@@ -10,11 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
 import java_itamae_contents.domain.model.ContentsAttribute;
-import java_itamae_properties.domain.service.properties.PropertiesService;
-import java_itamae_properties.domain.service.properties.PropertiesServiceImpl;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.service.csv_contents.CsvContentsService;
 import zip_code_db_cli.domain.service.csv_contents.CsvContentsServiceImpl;
@@ -27,10 +23,10 @@ import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
 public class Main {
     /**
      * @param args
-     *             <ul>
-     *             <li>--import, -i &lt;config_path&gt;: config_path
-     *             に指定した設定ファイルの内容に従って CSV を読込み、 MySQL へ一括登録する。</li>
-     *             </ul>
+     *            <ul>
+     *            <li>--import, -i &lt;path&gt;: path に指定したディレクトリ配下に存在する CSV
+     *            を読込み、 MySQL へ一括登録する。</li>
+     *            </ul>
      */
     public static void main(String[] args) {
         final LongOpt[] longopts = new LongOpt[1];
@@ -46,10 +42,10 @@ public class Main {
 
         while ((c = options.getopt()) != -1) {
             switch (c) {
-            case 'i':
-                config.setPath(options.getOptarg());
-                importFlag = 1;
-                break;
+                case 'i' :
+                    config.setPath(options.getOptarg());
+                    importFlag = 1;
+                    break;
             }
         }
 
@@ -57,12 +53,10 @@ public class Main {
 
         try {
             if (importFlag == 1) {
-                final PropertiesService ps = new PropertiesServiceImpl(config);
-                final String csvPath = ps.getProperty("csvPath");
-                final File directory = new File(csvPath);
+                final File directory = new File(config.getPath());
 
                 if (!directory.isDirectory()) {
-                    throw new FileNotFoundException(csvPath + " が見つかりません。");
+                    throw new FileNotFoundException(config.getPath() + " が見つかりません。");
                 }
 
                 final FilenameFilter filter = (dir, name) -> {
@@ -73,8 +67,7 @@ public class Main {
                     }
                 };
 
-                final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-                final ZipCodeService zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(config));
+                final ZipCodeService zcs = new ZipCodeServiceImpl();
                 zcs.deleteAll();
 
                 final File[] files = directory.listFiles(filter);
