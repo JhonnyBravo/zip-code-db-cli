@@ -6,52 +6,39 @@ import static org.junit.Assert.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
-import java_itamae_contents.domain.model.ContentsAttribute;
 import zip_code_db_cli.domain.model.ZipCode;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
 
 @RunWith(Enclosed.class)
 public class ZipCodeServiceTest {
     public static class テーブルが空である場合 {
-        private ZipCodeService zcs;
+        private ZipCodeService service;
 
         @Before
         public void setUp() throws Exception {
-            final ContentsAttribute attr = new ContentsAttribute();
-            attr.setPath("src/test/resources/config.properties");
-
-            final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-            zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(attr));
-
-            final List<ZipCode> recordset = zcs.findAll();
-
-            if (recordset.size() > 0) {
-                zcs.deleteAll();
-            }
+            service = new ZipCodeServiceImpl();
+            service.deleteAll();
         }
 
         @After
         public void tearDown() throws Exception {
-            zcs.deleteAll();
+            service.deleteAll();
         }
 
         @Test
         public void findAll実行時に空のリストが返されること() throws Exception {
-            final List<ZipCode> recordset = zcs.findAll();
+            final List<ZipCode> recordset = service.findAll();
             assertThat(recordset.size(), is(0));
         }
 
         @Test
-        public void create実行時にレコードを登録できること() throws Exception {
+        public void create実行時にレコードを登録できて終了ステータスがtrueであること() throws Exception {
             final List<ZipCode> contents = new ArrayList<>();
             {
                 final ZipCode zipcode = new ZipCode();
@@ -86,39 +73,83 @@ public class ZipCodeServiceTest {
                 contents.add(zipcode);
             }
 
-            final boolean status = zcs.create(contents);
+            final boolean status = service.create(contents);
             assertThat(status, is(true));
 
-            final List<ZipCode> recordset = zcs.findAll();
+            final List<ZipCode> recordset = service.findAll();
             assertThat(recordset.size(), is(2));
-
-            assertThat(recordset.get(0).getZipCode(), is("0600000"));
-            assertThat(recordset.get(0).getPrefecture(), is("北海道"));
-            assertThat(recordset.get(0).getCity(), is("札幌市中央区"));
-            assertThat(recordset.get(0).getArea(), is("以下に掲載がない場合"));
-
-            assertThat(recordset.get(1).getZipCode(), is("0600042"));
-            assertThat(recordset.get(1).getPrefecture(), is("北海道"));
-            assertThat(recordset.get(1).getCity(), is("札幌市中央区"));
-            assertThat(recordset.get(1).getArea(), is("大通西（１～１９丁目）"));
         }
 
-        public void create実行時に空のリストを渡した場合に終了ステータスfalseがであること() throws Exception {
+        @Test
+        public void create実行時に空のリストを引数に渡した場合に終了ステータスがfalseであること() throws Exception {
             final List<ZipCode> contents = new ArrayList<>();
-
-            final boolean status = zcs.create(contents);
+            final boolean status = service.create(contents);
             assertThat(status, is(false));
 
-            final List<ZipCode> recordset = zcs.findAll();
+            final List<ZipCode> recordset = service.findAll();
             assertThat(recordset.size(), is(0));
+        }
+
+        @Test(expected = PersistenceException.class)
+        public void create実行時に例外が発生した場合にrollbackが実行されること() throws Exception {
+            final List<ZipCode> contents = new ArrayList<>();
+            {
+                final ZipCode zipcode = new ZipCode();
+
+                zipcode.setJisCode("01101");
+                zipcode.setZipCode("0600000");
+                zipcode.setPrefecturePhonetic("ﾎｯｶｲﾄﾞｳ");
+                zipcode.setCityPhonetic("ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ");
+                zipcode.setAreaPhonetic("ｲｶﾆｹｲｻｲｶﾞﾅｲﾊﾞｱｲ");
+                zipcode.setPrefecture("北海道");
+                zipcode.setCity("札幌市中央区");
+                zipcode.setArea("以下に掲載がない場合");
+                zipcode.setUpdateFlag(0);
+                zipcode.setReasonFlag(1);
+
+                contents.add(zipcode);
+            }
+            {
+                final ZipCode zipcode = new ZipCode();
+
+                zipcode.setJisCode("01101");
+                zipcode.setZipCode("06000429");
+                zipcode.setPrefecturePhonetic("ﾎｯｶｲﾄﾞｳ");
+                zipcode.setCityPhonetic("ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ");
+                zipcode.setAreaPhonetic("ｵｵﾄﾞｵﾘﾆｼ(1-19ﾁｮｳﾒ)");
+                zipcode.setPrefecture("北海道");
+                zipcode.setCity("札幌市中央区");
+                zipcode.setArea("大通西（１～１９丁目）");
+                zipcode.setUpdateFlag(1);
+                zipcode.setReasonFlag(0);
+
+                contents.add(zipcode);
+            }
+
+            try {
+                service.create(contents);
+            } catch (final Exception e) {
+                final List<ZipCode> recordset = service.findAll();
+                assertThat(recordset.size(), is(0));
+                throw e;
+            }
+        }
+
+        @Test
+        public void deleteAll実行時に終了ステータスがfalseであること() throws Exception {
+            final boolean status = service.deleteAll();
+            assertThat(status, is(false));
         }
     }
 
     public static class テーブルが空ではない場合 {
-        private ZipCodeService zcs;
+        private ZipCodeService service;
 
         @Before
         public void setUp() throws Exception {
+            service = new ZipCodeServiceImpl();
+            service.deleteAll();
+
             final List<ZipCode> contents = new ArrayList<>();
             {
                 final ZipCode zipcode = new ZipCode();
@@ -153,44 +184,22 @@ public class ZipCodeServiceTest {
                 contents.add(zipcode);
             }
 
-            final ContentsAttribute attr = new ContentsAttribute();
-            attr.setPath("src/test/resources/config.properties");
-
-            final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-            zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(attr));
-
-            final List<ZipCode> recordset = zcs.findAll();
-
-            if (recordset.size() > 0) {
-                zcs.deleteAll();
-            }
-
-            zcs.create(contents);
+            service.create(contents);
         }
 
         @After
         public void tearDown() throws Exception {
-            zcs.deleteAll();
+            service.deleteAll();
         }
 
         @Test
         public void findAll実行時にレコードがリストに変換されて返されること() throws Exception {
-            final List<ZipCode> recordset = zcs.findAll();
+            final List<ZipCode> recordset = service.findAll();
             assertThat(recordset.size(), is(2));
-
-            assertThat(recordset.get(0).getZipCode(), is("0600000"));
-            assertThat(recordset.get(0).getPrefecture(), is("北海道"));
-            assertThat(recordset.get(0).getCity(), is("札幌市中央区"));
-            assertThat(recordset.get(0).getArea(), is("以下に掲載がない場合"));
-
-            assertThat(recordset.get(1).getZipCode(), is("0600042"));
-            assertThat(recordset.get(1).getPrefecture(), is("北海道"));
-            assertThat(recordset.get(1).getCity(), is("札幌市中央区"));
-            assertThat(recordset.get(1).getArea(), is("大通西（１～１９丁目）"));
         }
 
         @Test
-        public void create実行時にレコードを追加できること() throws Exception {
+        public void create実行時にレコードを登録できて終了ステータスがtrueであること() throws Exception {
             final List<ZipCode> contents = new ArrayList<>();
             {
                 final ZipCode zipcode = new ZipCode();
@@ -209,24 +218,17 @@ public class ZipCodeServiceTest {
                 contents.add(zipcode);
             }
 
-            final boolean status = zcs.create(contents);
+            final boolean status = service.create(contents);
             assertThat(status, is(true));
 
-            final List<ZipCode> recordset = zcs.findAll();
+            final List<ZipCode> recordset = service.findAll();
             assertThat(recordset.size(), is(3));
-
-            assertThat(recordset.get(2).getZipCode(), is("0028071"));
-            assertThat(recordset.get(2).getPrefecture(), is("北海道"));
-            assertThat(recordset.get(2).getCity(), is("札幌市北区"));
-            assertThat(recordset.get(2).getArea(), is("あいの里一条"));
         }
 
-        public void deleteAll実行時にテーブルを空にできること() throws Exception {
-            final boolean status = zcs.deleteAll();
+        @Test
+        public void deleteAll実行時に終了ステータスがtrueであること() throws Exception {
+            final boolean status = service.deleteAll();
             assertThat(status, is(true));
-
-            final List<ZipCode> recordset = zcs.findAll();
-            assertThat(recordset.size(), is(0));
         }
     }
 }
