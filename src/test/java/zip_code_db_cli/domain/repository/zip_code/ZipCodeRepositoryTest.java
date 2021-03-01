@@ -1,7 +1,8 @@
 package zip_code_db_cli.domain.repository.zip_code;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,7 @@ public class ZipCodeRepositoryTest {
 
         @BeforeClass
         public static void setUpClass() throws Exception {
-            factory = new SqlSessionFactoryBuilder()
-                    .build(Resources.getResourceAsStream("mybatis-config.xml"));
+            factory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream("mybatis-config.xml"));
         }
 
         @Before
@@ -144,8 +144,7 @@ public class ZipCodeRepositoryTest {
 
         @BeforeClass
         public static void setUpClass() throws Exception {
-            factory = new SqlSessionFactoryBuilder()
-                    .build(Resources.getResourceAsStream("mybatis-config.xml"));
+            factory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream("mybatis-config.xml"));
         }
 
         @Before
