@@ -1,7 +1,8 @@
 package zip_code_db_cli.domain.service.zip_code;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +17,6 @@ import java_itamae_connection.domain.service.connection_info.ConnectionInfoServi
 import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import zip_code_db_cli.domain.model.ZipCode;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
 
 @RunWith(Enclosed.class)
 public class ZipCodeServiceTest {
