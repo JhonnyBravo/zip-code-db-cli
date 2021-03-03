@@ -1,4 +1,3 @@
-create database if not exists zip_code_db;
 use zip_code_db;
 
 CREATE TABLE IF NOT EXISTS t_zip_code (
@@ -15,5 +14,3 @@ CREATE TABLE IF NOT EXISTS t_zip_code (
     id INT AUTO_INCREMENT,
     PRIMARY KEY (id)
 );
-
---grant all privileges on zip_code_db.* to user@localhost;
