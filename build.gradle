@@ -24,7 +24,7 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '4.1'
     compile 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
     // Use JUnit test framework
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.13.2'
 }
 
 group='com.github.JhonnyBravo'
