@@ -7,9 +7,7 @@ import static org.hamcrest.CoreMatchers.is;
 import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,6 +20,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 import zip_code_db_cli.domain.repository.csv_stream.CsvStreamRepository;
+import zip_code_db_cli.test.CreateTestContents1;
+import zip_code_db_cli.test.CreateTestContents2;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -30,72 +30,13 @@ public class CsvContentsRepositoryTest {
     private CsvStreamRepository csr;
     @Autowired
     private CsvContentsRepository ccr;
+    @Autowired
+    private CreateTestContents1 createTestContents1;
+    @Autowired
+    private CreateTestContents2 createTestContents2;
+
     private ContentsAttribute attr;
-
     private File file;
-
-    private final Supplier<List<ZipCodeCsvEntity>> CreateTestContents1 = () -> {
-        final List<ZipCodeCsvEntity> contents = new ArrayList<>();
-
-        {
-            final ZipCodeCsvEntity content = new ZipCodeCsvEntity();
-
-            content.setJisCode("01101");
-            content.setZipCode("0600000");
-            content.setPrefecturePhonetic("ﾎｯｶｲﾄﾞｳ");
-            content.setCityPhonetic("ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ");
-            content.setAreaPhonetic("ｲｶﾆｹｲｻｲｶﾞﾅｲﾊﾞｱｲ");
-            content.setPrefecture("北海道");
-            content.setCity("札幌市中央区");
-            content.setArea("以下に掲載がない場合");
-            content.setUpdateFlag(0);
-            content.setReasonFlag(1);
-
-            contents.add(content);
-        }
-
-        {
-            final ZipCodeCsvEntity content = new ZipCodeCsvEntity();
-
-            content.setJisCode("01101");
-            content.setZipCode("0600042");
-            content.setPrefecturePhonetic("ﾎｯｶｲﾄﾞｳ");
-            content.setCityPhonetic("ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ");
-            content.setAreaPhonetic("ｵｵﾄﾞｵﾘﾆｼ(1-19ﾁｮｳﾒ)");
-            content.setPrefecture("北海道");
-            content.setCity("札幌市中央区");
-            content.setArea("大通西（１～１９丁目）");
-            content.setUpdateFlag(1);
-            content.setReasonFlag(0);
-
-            contents.add(content);
-        }
-
-        return contents;
-    };
-
-    private final Supplier<List<ZipCodeCsvEntity>> CreateTestContents2 = () -> {
-        final List<ZipCodeCsvEntity> contents = new ArrayList<>();
-
-        {
-            final ZipCodeCsvEntity content = new ZipCodeCsvEntity();
-
-            content.setJisCode("01101");
-            content.setZipCode("0600042");
-            content.setPrefecturePhonetic("ﾎｯｶｲﾄﾞｳ");
-            content.setCityPhonetic("ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ");
-            content.setAreaPhonetic("ｵｵﾄﾞｵﾘﾆｼ(1-19ﾁｮｳﾒ)");
-            content.setPrefecture("北海道");
-            content.setCity("札幌市中央区");
-            content.setArea("大通西（１～１９丁目）");
-            content.setUpdateFlag(1);
-            content.setReasonFlag(0);
-
-            contents.add(content);
-        }
-
-        return contents;
-    };
 
     @Before
     public void setUp() throws Exception {
@@ -122,7 +63,7 @@ public class CsvContentsRepositoryTest {
 
     @Test
     public void setContents実行時にファイルへ書込みできること() throws Exception {
-        final List<ZipCodeCsvEntity> contents = CreateTestContents1.get();
+        final List<ZipCodeCsvEntity> contents = createTestContents1.get();
 
         try (Writer writer = csr.getWriter(attr)) {
             final boolean status = ccr.setContents(writer, contents);
@@ -150,13 +91,13 @@ public class CsvContentsRepositoryTest {
     // ファイルが存在して空ではない場合
     @Test
     public void setContents実行時にファイルを上書きできること() throws Exception {
-        final List<ZipCodeCsvEntity> contents1 = CreateTestContents1.get();
+        final List<ZipCodeCsvEntity> contents1 = createTestContents1.get();
 
         try (Writer writer = csr.getWriter(attr)) {
             ccr.setContents(writer, contents1);
         }
 
-        final List<ZipCodeCsvEntity> contents2 = CreateTestContents2.get();
+        final List<ZipCodeCsvEntity> contents2 = createTestContents2.get();
 
         try (Writer writer = csr.getWriter(attr)) {
             final boolean status = ccr.setContents(writer, contents2);
@@ -177,7 +118,7 @@ public class CsvContentsRepositoryTest {
 
     @Test
     public void deleteContents実行時にファイルを空にできること() throws Exception {
-        final List<ZipCodeCsvEntity> contents = CreateTestContents1.get();
+        final List<ZipCodeCsvEntity> contents = createTestContents1.get();
 
         try (Writer writer = csr.getWriter(attr)) {
             ccr.setContents(writer, contents);
