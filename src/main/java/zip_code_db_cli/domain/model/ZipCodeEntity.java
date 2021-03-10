@@ -1,4 +1,6 @@
-package zip_code_db_cli;
+package zip_code_db_cli.domain.model;
+
+import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -7,15 +9,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.springframework.stereotype.Service;
-
 /**
- * zip_code テーブルのデータ入出力を管理する。
+ * t_zip_code テーブルのデータ入出力を管理する。
  */
-@Service
 @Entity
-@Table(name = "ZipCode")
-public class ZipCode {
+@Table(name = "t_zip_code")
+public class ZipCodeEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column
