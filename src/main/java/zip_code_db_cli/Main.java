@@ -1,18 +1,30 @@
 package zip_code_db_cli;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
+import java_itamae_contents.domain.model.ContentsAttribute;
+import zip_code_db_cli.domain.model.ZipCodeEntity;
+import zip_code_db_cli.domain.service.csv_contents.CsvContentsService;
+import zip_code_db_cli.domain.service.csv_contents.CsvContentsServiceImpl;
+import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
+import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
 
 /**
  * zip_code テーブルへ郵便番号データを登録する。
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "zip_code_db_cli")
 public class Main {
     /**
      * @param args
@@ -22,62 +34,92 @@ public class Main {
      *             </ol>
      */
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(Main.class, args);
+        final ConfigurableApplicationContext context = SpringApplication.run(Main.class, args);
 
-        LongOpt[] longopts = new LongOpt[1];
-        longopts[0] = new LongOpt("dirPath", LongOpt.REQUIRED_ARGUMENT, null, 'd');
+        final LongOpt[] longopts = new LongOpt[1];
+        longopts[0] = new LongOpt("import", LongOpt.REQUIRED_ARGUMENT, null, 'i');
 
-        Getopt options = new Getopt("Main", args, "d:", longopts);
+        final Getopt options = new Getopt("Main", args, "i:", longopts);
+        final Logger logger = LoggerFactory.getLogger(Main.class);
+
+        final ContentsAttribute config = new ContentsAttribute();
 
         int c;
-        int dFlag = 0;
-        String dirPath = null;
+        int importFlag = 0;
 
         while ((c = options.getopt()) != -1) {
             switch (c) {
-            case 'd':
-                dirPath = options.getOptarg();
-                dFlag = 1;
+            case 'i':
+                config.setPath(options.getOptarg());
+                importFlag = 1;
                 break;
             }
         }
 
-        if (dFlag == 1) {
-            // ファイルリストを取得。
-            GetPathList gpl = context.getBean(GetPathList.class);
-            gpl.init(dirPath, "csv");
-            List<String> pathList = gpl.runCommand();
+        boolean status = false;
 
-            if (gpl.getCode() != 2) {
-                System.exit(gpl.getCode());
-            }
+        try {
+            if (importFlag == 1) {
+                final File directory = new File(config.getPath());
 
-            ZipCodeController tzcc = context.getBean(ZipCodeController.class);
-
-            // 既存レコードを削除。
-            tzcc.deleteRecord();
-
-            if (tzcc.getCode() == 1) {
-                System.exit(tzcc.getCode());
-            }
-
-            for (String path : pathList) {
-                // CSV 読込。
-                List<String[]> recordset = tzcc.importCsv(path);
-
-                if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                if (!directory.isDirectory()) {
+                    throw new FileNotFoundException(config.getPath() + " が見つかりません。");
                 }
 
-                // 新規レコードを登録。
-                tzcc.insertRecord(recordset);
+                final FilenameFilter filter = (dir, name) -> {
+                    if (name.toLowerCase().endsWith("csv")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
 
-                if (tzcc.getCode() == 1) {
-                    System.exit(tzcc.getCode());
+                final ZipCodeService zcs = context.getBean(ZipCodeServiceImpl.class);
+                final CsvContentsService ccs = context.getBean(CsvContentsServiceImpl.class);
+
+                zcs.deleteAll();
+
+                final File[] files = directory.listFiles(filter);
+
+                for (final File file : files) {
+                    final ContentsAttribute csv = new ContentsAttribute();
+                    csv.setPath(file.getCanonicalPath());
+                    ccs.init(csv);
+
+                    final List<ZipCodeEntity> recordset = new ArrayList<>();
+
+                    ccs.getContents().forEach(content -> {
+                        final ZipCodeEntity record = new ZipCodeEntity();
+
+                        record.setJisCode(content.getJisCode());
+                        record.setZipCode(content.getZipCode());
+                        record.setPrefecturePhonetic(content.getPrefecturePhonetic());
+                        record.setCityPhonetic(content.getCityPhonetic());
+                        record.setAreaPhonetic(content.getAreaPhonetic());
+                        record.setPrefecture(content.getPrefecture());
+                        record.setCity(content.getCity());
+                        record.setArea(content.getArea());
+                        record.setUpdateFlag(content.getUpdateFlag());
+                        record.setReasonFlag(content.getReasonFlag());
+
+                        recordset.add(record);
+                    });
+
+                    logger.info(csv.getPath() + " をインポートしています......");
+                    status = zcs.saveAll(recordset);
                 }
-            }
 
-            System.exit(tzcc.getCode());
+                logger.info("完了しました。");
+            }
+        } catch (final Exception e) {
+            logger.warn(e.toString());
+            System.exit(1);
+        }
+
+        if (status) {
+            System.exit(2);
+        } else {
+            System.exit(0);
         }
     }
 }
