@@ -1,8 +1,8 @@
 package zip_code_db_cli.domain.service.csv_contents;
 
-import static org.junit.Assert.assertThat;
-
 import static org.hamcrest.CoreMatchers.is;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.File;
 import java.util.List;
