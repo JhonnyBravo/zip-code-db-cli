@@ -13,9 +13,6 @@ local.properties
 .loadpath
 .recommenders
 
-# Java
-src/test/resources/*.properties
-
 # Gradle
 .gradle
 gradlew
@@ -66,7 +63,6 @@ gradle-app.setting
 # .texlipse
 #
 # STS (Spring Tool Suite)
-application.properties
 # .springBeans
 #
 # # Code Recommenders
@@ -76,3 +72,5 @@ application.properties
 # .cache-main
 # .scala_dependencies
 # .worksheet
+# Docker
+mysql/data
