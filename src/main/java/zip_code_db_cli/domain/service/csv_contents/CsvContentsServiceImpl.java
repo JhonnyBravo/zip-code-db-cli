@@ -5,88 +5,89 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-
 import java_itamae_contents.domain.model.ContentsAttribute;
+import java_itamae_contents.domain.repository.stream.StreamRepository;
+import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepository;
 import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepositoryImpl;
-import zip_code_db_cli.domain.repository.csv_stream.CsvStreamRepository;
-import zip_code_db_cli.domain.repository.csv_stream.CsvStreamRepositoryImpl;
 
 public class CsvContentsServiceImpl implements CsvContentsService {
-    private final ContentsAttribute attr;
-    private final CsvStreamRepository csr;
-    private final CsvContentsRepository ccr;
+  private final ContentsAttribute attr;
+  private final StreamRepository sr;
+  private final CsvContentsRepository ccr;
 
-    /**
-     * @param attr 操作対象とするファイルの情報を納めた ContentsAttribute を指定する。
-     */
-    public CsvContentsServiceImpl(ContentsAttribute attr) {
-        this.attr = attr;
-        csr = new CsvStreamRepositoryImpl();
-        ccr = new CsvContentsRepositoryImpl();
+  /**
+   * 初期化処理を実行する。
+   *
+   * @param attr 操作対象とするファイルの情報を納めた {@link ContentsAttribute} を指定する。
+   */
+  public CsvContentsServiceImpl(ContentsAttribute attr) {
+    this.attr = attr;
+    sr = new StreamRepositoryImpl();
+    ccr = new CsvContentsRepositoryImpl();
+  }
+
+  @Override
+  public List<ZipCode> getContents() throws Exception {
+    List<ZipCode> contents = new ArrayList<>();
+
+    try (Reader reader = sr.getReader(attr)) {
+      contents = ccr.getContents(reader);
     }
 
-    @Override
-    public List<ZipCode> getContents() throws Exception {
-        List<ZipCode> contents = new ArrayList<ZipCode>();
+    return contents;
+  }
 
-        try (Reader reader = csr.getReader(attr)) {
-            contents = ccr.getContents(reader);
-        }
+  @Override
+  public boolean updateContent(ZipCode content) throws Exception {
+    boolean status = false;
+    final File file = new File(attr.getPath());
 
-        return contents;
+    if (!file.isFile()) {
+      file.createNewFile();
     }
 
-    @Override
-    public boolean setContent(ZipCode content) throws Exception {
-        boolean status = false;
-        final File file = new File(attr.getPath());
+    final List<ZipCode> contents = new ArrayList<>();
+    contents.add(content);
 
-        if (!file.isFile()) {
-            file.createNewFile();
-        }
-
-        final List<ZipCode> contents = new ArrayList<ZipCode>();
-        contents.add(content);
-
-        try (Writer writer = csr.getWriter(attr)) {
-            status = ccr.setContents(writer, contents);
-        }
-
-        return status;
+    try (Writer writer = sr.getWriter(attr)) {
+      status = ccr.updateContents(writer, contents);
     }
 
-    @Override
-    public boolean appendContent(ZipCode content) throws Exception {
-        boolean status = false;
-        final File file = new File(attr.getPath());
+    return status;
+  }
 
-        if (!file.isFile()) {
-            file.createNewFile();
-        }
+  @Override
+  public boolean appendContent(ZipCode content) throws Exception {
+    boolean status = false;
+    final File file = new File(attr.getPath());
 
-        final List<ZipCode> contents = getContents();
-        contents.add(content);
-
-        try (Writer writer = csr.getWriter(attr)) {
-            status = ccr.setContents(writer, contents);
-        }
-
-        return status;
+    if (!file.isFile()) {
+      file.createNewFile();
     }
 
-    @Override
-    public boolean deleteContents() throws Exception {
-        boolean status = false;
-        final List<ZipCode> contents = getContents();
+    final List<ZipCode> contents = getContents();
+    contents.add(content);
 
-        if (contents.size() > 0) {
-            try (Writer writer = csr.getWriter(attr)) {
-                status = ccr.deleteContents(writer);
-            }
-        }
-
-        return status;
+    try (Writer writer = sr.getWriter(attr)) {
+      status = ccr.updateContents(writer, contents);
     }
+
+    return status;
+  }
+
+  @Override
+  public boolean deleteContents() throws Exception {
+    boolean status = false;
+    final List<ZipCode> contents = getContents();
+
+    if (contents.size() > 0) {
+      try (Writer writer = sr.getWriter(attr)) {
+        status = ccr.deleteContents(writer);
+      }
+    }
+
+    return status;
+  }
 }
