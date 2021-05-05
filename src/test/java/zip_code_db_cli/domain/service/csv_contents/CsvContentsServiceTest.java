@@ -55,7 +55,7 @@ public class CsvContentsServiceTest {
     @Test
     public void setContent実行時にファイルへ書込みできること() throws Exception {
         final List<ZipCodeCsvEntity> contents = createTestContents1.get();
-        final boolean status = service.setContent(contents.get(0));
+        final boolean status = service.updateContent(contents.get(0));
         assertThat(status, is(true));
 
         final List<ZipCodeCsvEntity> curContents = service.getContents();
@@ -71,7 +71,7 @@ public class CsvContentsServiceTest {
     @Test
     public void appendContent実行時にファイルへ書込みできること() throws Exception {
         final List<ZipCodeCsvEntity> contents = createTestContents1.get();
-        final boolean status = service.setContent(contents.get(0));
+        final boolean status = service.updateContent(contents.get(0));
         assertThat(status, is(true));
 
         final List<ZipCodeCsvEntity> curContents = service.getContents();
@@ -88,9 +88,9 @@ public class CsvContentsServiceTest {
     @Test
     public void setContent実行時にファイルを上書きできること() throws Exception {
         final List<ZipCodeCsvEntity> contents = createTestContents1.get();
-        service.setContent(contents.get(0));
+        service.updateContent(contents.get(0));
 
-        final boolean status = service.setContent(contents.get(1));
+        final boolean status = service.updateContent(contents.get(1));
         assertThat(status, is(true));
 
         final List<ZipCodeCsvEntity> curContents = service.getContents();
@@ -106,7 +106,7 @@ public class CsvContentsServiceTest {
     @Test
     public void appendContent実行時にファイルへ追記できること() throws Exception {
         final List<ZipCodeCsvEntity> contents = createTestContents1.get();
-        service.setContent(contents.get(0));
+        service.updateContent(contents.get(0));
 
         final boolean status = service.appendContent(contents.get(1));
         assertThat(status, is(true));
@@ -130,7 +130,7 @@ public class CsvContentsServiceTest {
     @Test
     public void deleteContents実行時にファイルを空にできること() throws Exception {
         final List<ZipCodeCsvEntity> contents = createTestContents1.get();
-        service.setContent(contents.get(0));
+        service.updateContent(contents.get(0));
 
         final boolean status = service.deleteContents();
         assertThat(status, is(true));
