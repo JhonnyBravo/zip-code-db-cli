@@ -1,7 +1,6 @@
 package zip_code_db_cli.domain.model;
 
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,194 +14,238 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "t_zip_code")
 public class ZipCodeEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column
+  private Integer id;
 
-    @Column(length = 5, nullable = false)
-    private String jisCode;
+  @Column(length = 5, nullable = false)
+  private String jisCode;
 
-    @Column(length = 7, nullable = false)
-    private String zipCode;
+  @Column(length = 7, nullable = false)
+  private String zipCode;
 
-    @Column(length = 10, nullable = false)
-    private String prefecturePhonetic;
+  @Column(length = 10, nullable = false)
+  private String prefecturePhonetic;
 
-    @Column(length = 30, nullable = false)
-    private String cityPhonetic;
+  @Column(length = 30, nullable = false)
+  private String cityPhonetic;
 
-    @Column(length = 80, nullable = true)
-    private String areaPhonetic;
+  @Column(length = 80, nullable = true)
+  private String areaPhonetic;
 
-    @Column(length = 10, nullable = false)
-    private String prefecture;
+  @Column(length = 10, nullable = false)
+  private String prefecture;
 
-    @Column(length = 20, nullable = false)
-    private String city;
+  @Column(length = 20, nullable = false)
+  private String city;
 
-    @Column(length = 50, nullable = true)
-    private String area;
+  @Column(length = 50, nullable = true)
+  private String area;
 
-    @Column(length = 1, nullable = false)
-    private Integer updateFlag;
+  @Column(length = 1, nullable = false)
+  private Integer updateFlag;
 
-    @Column(length = 1, nullable = false)
-    private Integer reasonFlag;
+  @Column(length = 1, nullable = false)
+  private Integer reasonFlag;
 
-    /**
-     * @return id レコード ID を返す。
-     */
-    public Integer getId() {
-        return id;
-    }
+  /**
+   * レコード ID を返す。
+   *
+   * @return id レコード ID
+   */
+  public Integer getId() {
+    return id;
+  }
 
-    /**
-     * @param id レコード ID を指定する。
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
+  /**
+   * レコード ID を設定する。
+   *
+   * @param id レコード ID として設定する整数
+   */
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-    /**
-     * @return jisCode JIS コードを返す。
-     */
-    public String getJisCode() {
-        return jisCode;
-    }
+  /**
+   * JIS コードを返す。
+   *
+   * @return jisCode JIS コード
+   */
+  public String getJisCode() {
+    return jisCode;
+  }
 
-    /**
-     * @param jisCode JIS コードを指定する。
-     */
-    public void setJisCode(String jisCode) {
-        this.jisCode = jisCode;
-    }
+  /**
+   * JIS コードを設定する。
+   *
+   * @param jisCode JIS コードとして設定する文字列
+   */
+  public void setJisCode(String jisCode) {
+    this.jisCode = jisCode;
+  }
 
-    /**
-     * @return zipCode 郵便番号を返す。
-     */
-    public String getZipCode() {
-        return zipCode;
-    }
+  /**
+   * 郵便番号を返す。
+   *
+   * @return zipCode 郵便番号
+   */
+  public String getZipCode() {
+    return zipCode;
+  }
 
-    /**
-     * @param zipCode 郵便番号を指定する。
-     */
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
-    }
+  /**
+   * 郵便番号を設定する。
+   *
+   * @param zipCode 郵便番号として設定する文字列
+   */
+  public void setZipCode(String zipCode) {
+    this.zipCode = zipCode;
+  }
 
-    /**
-     * @return prefecturePhonetic 都道府県のカナを返す。
-     */
-    public String getPrefecturePhonetic() {
-        return prefecturePhonetic;
-    }
+  /**
+   * 都道府県名のフリガナを返す。
+   *
+   * @return prefecturePhonetic 都道府県名のフリガナ
+   */
+  public String getPrefecturePhonetic() {
+    return prefecturePhonetic;
+  }
 
-    /**
-     * @param prefecturePhonetic 都道府県のカナを指定する。
-     */
-    public void setPrefecturePhonetic(String prefecturePhonetic) {
-        this.prefecturePhonetic = prefecturePhonetic;
-    }
+  /**
+   * 都道府県名のフリガナを設定する。
+   *
+   * @param prefecturePhonetic 都道府県名のフリガナとして設定する文字列
+   */
+  public void setPrefecturePhonetic(String prefecturePhonetic) {
+    this.prefecturePhonetic = prefecturePhonetic;
+  }
 
-    /**
-     * @return cityPhonetic 市区町村のカナを返す。
-     */
-    public String getCityPhonetic() {
-        return cityPhonetic;
-    }
+  /**
+   * 市区郡名のフリガナを返す。
+   *
+   * @return cityPhonetic 市区郡名のフリガナ
+   */
+  public String getCityPhonetic() {
+    return cityPhonetic;
+  }
 
-    /**
-     * @param cityPhonetic 市区町村のカナを指定する。
-     */
-    public void setCityPhonetic(String cityPhonetic) {
-        this.cityPhonetic = cityPhonetic;
-    }
+  /**
+   * 市区郡名のフリガナを設定する。
+   *
+   * @param cityPhonetic 市区郡名のフリガナとして設定する文字列
+   */
+  public void setCityPhonetic(String cityPhonetic) {
+    this.cityPhonetic = cityPhonetic;
+  }
 
-    /**
-     * @return areaPhonetic 町域のカナを返す。
-     */
-    public String getAreaPhonetic() {
-        return areaPhonetic;
-    }
+  /**
+   * 町域名のフリガナを返す。
+   *
+   * @return areaPhonetic 町域名のフリガナ
+   */
+  public String getAreaPhonetic() {
+    return areaPhonetic;
+  }
 
-    /**
-     * @param areaPhonetic 町域のカナを指定する。
-     */
-    public void setAreaPhonetic(String areaPhonetic) {
-        this.areaPhonetic = areaPhonetic;
-    }
+  /**
+   * 町域名のフリガナを設定する。
+   *
+   * @param areaPhonetic 町域名のフリガナとして設定する文字列
+   */
+  public void setAreaPhonetic(String areaPhonetic) {
+    this.areaPhonetic = areaPhonetic;
+  }
 
-    /**
-     * @return prefecture 都道府県を返す。
-     */
-    public String getPrefecture() {
-        return prefecture;
-    }
+  /**
+   * 都道府県名を返す。
+   *
+   * @return prefecture 都道府県名
+   */
+  public String getPrefecture() {
+    return prefecture;
+  }
 
-    /**
-     * @param prefecture 都道府県を指定する。
-     */
-    public void setPrefecture(String prefecture) {
-        this.prefecture = prefecture;
-    }
+  /**
+   * 都道府県名を設定する。
+   *
+   * @param prefecture 都道府県名として設定する文字列
+   */
+  public void setPrefecture(String prefecture) {
+    this.prefecture = prefecture;
+  }
 
-    /**
-     * @return city 市区町村を返す。
-     */
-    public String getCity() {
-        return city;
-    }
+  /**
+   * 市区郡名を返す。
+   *
+   * @return city 市区郡名
+   */
+  public String getCity() {
+    return city;
+  }
 
-    /**
-     * @param city 市区町村を指定する。
-     */
-    public void setCity(String city) {
-        this.city = city;
-    }
+  /**
+   * 市区郡名を設定する。
+   *
+   * @param city 市区郡名として設定する文字列
+   */
+  public void setCity(String city) {
+    this.city = city;
+  }
 
-    /**
-     * @return area 町域を返す。
-     */
-    public String getArea() {
-        return area;
-    }
+  /**
+   * 町域名を返す。
+   *
+   * @return area 町域名
+   */
+  public String getArea() {
+    return area;
+  }
 
-    /**
-     * @param area 町域を指定する。
-     */
-    public void setArea(String area) {
-        this.area = area;
-    }
+  /**
+   * 町域名を設定する。
+   *
+   * @param area 町域名として設定する文字列
+   */
+  public void setArea(String area) {
+    this.area = area;
+  }
 
-    /**
-     * @return updateFlag 更新区分を返す。
-     */
-    public Integer getUpdateFlag() {
-        return updateFlag;
-    }
+  /**
+   * 更新区分を返す。
+   *
+   * @return updateFlag 更新区分
+   */
+  public Integer getUpdateFlag() {
+    return updateFlag;
+  }
 
-    /**
-     * @param updateFlag 更新区分を指定する。
-     */
-    public void setUpdateFlag(Integer updateFlag) {
-        this.updateFlag = updateFlag;
-    }
+  /**
+   * 更新区分を設定する。
+   *
+   * @param updateFlag 更新区分として設定する整数
+   */
+  public void setUpdateFlag(Integer updateFlag) {
+    this.updateFlag = updateFlag;
+  }
 
-    /**
-     * @return reasonFlag 更新理由を返す。
-     */
-    public Integer getReasonFlag() {
-        return reasonFlag;
-    }
+  /**
+   * 更新理由を返す。
+   *
+   * @return reasonFlag 更新理由
+   */
+  public Integer getReasonFlag() {
+    return reasonFlag;
+  }
 
-    /**
-     * @param reasonFlag 更新理由を指定する。
-     */
-    public void setReasonFlag(Integer reasonFlag) {
-        this.reasonFlag = reasonFlag;
-    }
+  /**
+   * 更新理由を設定する。
+   *
+   * @param reasonFlag 更新理由として設定する整数
+   */
+  public void setReasonFlag(Integer reasonFlag) {
+    this.reasonFlag = reasonFlag;
+  }
 }
