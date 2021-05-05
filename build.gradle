@@ -31,7 +31,7 @@ repositories {
 
 dependencies {
 	compile group: 'gnu.getopt', name: 'java-getopt', version: '1.0.13'
-	compile group: 'com.opencsv', name: 'opencsv', version: '5.3'
+	compile group: 'com.opencsv', name: 'opencsv', version: '5.4'
 	compile 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
 	compile ('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile ('org.springframework.boot:spring-boot-starter')
