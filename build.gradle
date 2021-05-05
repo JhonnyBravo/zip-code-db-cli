@@ -15,6 +15,8 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven'
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
 
 group = 'com.github.JhonnyBravo'
 
@@ -55,6 +57,17 @@ artifacts{
 javadoc{
     options.charSet='UTF-8'
     options.encoding='UTF-8'
+}
+
+checkstyle {
+    toolVersion='8.41.1'
+}
+
+pmd {
+    toolVersion='6.33.0'
+    ignoreFailures=true
+    ruleSetFiles=files("config/pmd/custom-java.xml")
+    ruleSets=[]
 }
 
 tasks.withType(JavaCompile){
