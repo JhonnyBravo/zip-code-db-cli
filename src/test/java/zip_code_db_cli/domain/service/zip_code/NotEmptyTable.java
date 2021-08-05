@@ -8,16 +8,25 @@ import java.util.function.Supplier;
 import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
 import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
 import java_itamae_contents.domain.model.ContentsAttribute;
+import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
+import java_itamae_properties.domain.repository.properties.PropertiesRepositoryImpl;
+import javax.inject.Inject;
+import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepositoryImpl;
 
 /**
  * テーブルが空ではない場合のテスト
  */
 public class NotEmptyTable {
+  @Inject
   private ZipCodeService zcs;
+  @Inject
+  private ConnectionInfoService cis;
 
   private final Supplier<List<ZipCode>> contentsSupplier = () -> {
     final List<ZipCode> contents = new ArrayList<>();
@@ -58,13 +67,17 @@ public class NotEmptyTable {
     return contents;
   };
 
+  @Rule
+  public WeldInitiator weld = WeldInitiator
+      .from(ConnectionInfoServiceImpl.class, StreamRepositoryImpl.class,
+          PropertiesRepositoryImpl.class, ZipCodeServiceImpl.class, ZipCodeRepositoryImpl.class)
+      .inject(this).build();
+
   @Before
   public void setUp() throws Exception {
     final ContentsAttribute attr = new ContentsAttribute();
     attr.setPath("src/test/resources/config.properties");
-
-    final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-    zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(attr));
+    zcs.init(cis.getConnectionInfo(attr));
 
     final List<ZipCode> recordset = zcs.findAll();
 
