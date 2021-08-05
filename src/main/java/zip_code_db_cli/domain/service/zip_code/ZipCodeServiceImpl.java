@@ -4,22 +4,18 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java_itamae_connection.domain.model.ConnectionInfo;
+import javax.inject.Inject;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepository;
-import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepositoryImpl;
 
 public class ZipCodeServiceImpl extends ZipCodeService {
-  private final ConnectionInfo cnInfo;
-  private final ZipCodeRepository zcr;
+  @Inject
+  private ZipCodeRepository zcr;
+  private ConnectionInfo cnInfo;
 
-  /**
-   * 初期化処理を実行する。
-   *
-   * @param cnInfo DB の接続情報を納めた {@link ConnectionInfo} を指定する。
-   */
-  public ZipCodeServiceImpl(ConnectionInfo cnInfo) {
+  @Override
+  public void init(ConnectionInfo cnInfo) throws Exception {
     this.cnInfo = cnInfo;
-    zcr = new ZipCodeRepositoryImpl();
   }
 
   @Override
