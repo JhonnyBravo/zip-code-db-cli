@@ -7,25 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.stream.StreamRepository;
-import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
+import javax.inject.Inject;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepository;
-import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepositoryImpl;
 
 public class CsvContentsServiceImpl implements CsvContentsService {
-  private final ContentsAttribute attr;
-  private final StreamRepository sr;
-  private final CsvContentsRepository ccr;
+  @Inject
+  private StreamRepository sr;
+  @Inject
+  private CsvContentsRepository ccr;
 
-  /**
-   * 初期化処理を実行する。
-   *
-   * @param attr 操作対象とするファイルの情報を納めた {@link ContentsAttribute} を指定する。
-   */
-  public CsvContentsServiceImpl(ContentsAttribute attr) {
+  private ContentsAttribute attr;
+
+  @Override
+  public void init(ContentsAttribute attr) {
     this.attr = attr;
-    sr = new StreamRepositoryImpl();
-    ccr = new CsvContentsRepositoryImpl();
   }
 
   @Override
