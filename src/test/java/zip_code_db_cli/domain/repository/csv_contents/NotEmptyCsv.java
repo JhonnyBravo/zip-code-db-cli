@@ -12,8 +12,11 @@ import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.contents.ContentsRepository;
 import java_itamae_contents.domain.repository.stream.StreamRepository;
 import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
+import javax.inject.Inject;
+import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import zip_code_db_cli.domain.model.ZipCode;
 
@@ -21,10 +24,13 @@ import zip_code_db_cli.domain.model.ZipCode;
  * CSV が空ではない場合のテスト
  */
 public class NotEmptyCsv {
+  @Inject
+  private StreamRepository sr;
+  @Inject
+  private CsvContentsRepository ccr;
+
   private File file;
   private ContentsAttribute attr;
-  private StreamRepository sr;
-  private CsvContentsRepository ccr;
 
   private final Supplier<List<ZipCode>> contentsSupplier = () -> {
     final List<ZipCode> contents = new ArrayList<>();
@@ -65,6 +71,10 @@ public class NotEmptyCsv {
     return contents;
   };
 
+  @Rule
+  public WeldInitiator weld = WeldInitiator
+      .from(CsvContentsRepositoryImpl.class, StreamRepositoryImpl.class).inject(this).build();
+
   @Before
   public void setUp() throws Exception {
     file = new File("test.csv");
@@ -72,9 +82,6 @@ public class NotEmptyCsv {
 
     attr = new ContentsAttribute();
     attr.setPath("test.csv");
-
-    sr = new StreamRepositoryImpl();
-    ccr = new CsvContentsRepositoryImpl();
 
     final List<ZipCode> contents = contentsSupplier.get();
 
