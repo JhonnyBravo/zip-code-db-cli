@@ -1,12 +1,20 @@
 package zip_code_db_cli.domain.service.csv_contents;
 
 import java.util.List;
+import java_itamae_contents.domain.model.ContentsAttribute;
 import zip_code_db_cli.domain.model.ZipCode;
 
 /**
  * CSV の読み書きを操作する。
  */
 public interface CsvContentsService {
+  /**
+   * 初期化処理を実行する。
+   *
+   * @param attr 操作対象とするファイルの情報を納めた {@link ContentsAttribute} を指定する。
+   */
+  void init(ContentsAttribute attr);
+
   /**
    * CSV を読み込んで {@link ZipCode} の {@link List} に変換して返す。
    *
