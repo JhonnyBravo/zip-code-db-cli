@@ -1,106 +1,24 @@
 package zip_code_db_cli.app;
 
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.util.List;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
-import java_itamae_contents.domain.model.ContentsAttribute;
-import java_itamae_properties.domain.service.properties.PropertiesService;
-import java_itamae_properties.domain.service.properties.PropertiesServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import zip_code_db_cli.domain.model.ZipCode;
-import zip_code_db_cli.domain.service.csv_contents.CsvContentsService;
-import zip_code_db_cli.domain.service.csv_contents.CsvContentsServiceImpl;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
-import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
+import org.jboss.weld.environment.se.Weld;
+import org.jboss.weld.environment.se.WeldContainer;
 
 /**
- * 郵便番号データを MySQL へ一括登録する。
+ * {@link Application} を起動する。
  */
 public class Main {
   /**
-   * 郵便番号データを MySQL へ一括登録する。
-   *
-   * @param args
-   *        <ul>
-   *        <li>--import, -i &lt;config_path&gt;: config_path に指定した設定ファイルの内容に従って CSV を読込み、 MySQL
-   *        へ一括登録する。</li>
-   *        </ul>
+   * {@link Application} を起動する。
    */
   public static void main(String[] args) {
-    final LongOpt[] longopts = new LongOpt[1];
-    longopts[0] = new LongOpt("import", LongOpt.REQUIRED_ARGUMENT, null, 'i');
+    final Weld weld = new Weld();
+    int status = 0;
 
-    final Getopt options = new Getopt("Main", args, "i:", longopts);
-    final Logger logger = LoggerFactory.getLogger(Main.class);
-
-    final ContentsAttribute config = new ContentsAttribute();
-
-    int c;
-    int importFlag = 0;
-
-    while ((c = options.getopt()) != -1) {
-      switch (c) {
-        case 'i':
-          config.setPath(options.getOptarg());
-          importFlag = 1;
-          break;
-      }
+    try (WeldContainer container = weld.initialize()) {
+      final Application app = container.select(Application.class).get();
+      status = app.main(args);
     }
 
-    boolean status = false;
-
-    try {
-      if (importFlag == 1) {
-        final PropertiesService ps = new PropertiesServiceImpl(config);
-        final String csvPath = ps.getProperty("csvPath");
-        final File directory = new File(csvPath);
-
-        if (!directory.isDirectory()) {
-          throw new FileNotFoundException(csvPath + " が見つかりません。");
-        }
-
-        final FilenameFilter filter = (dir, name) -> {
-          if (name.toLowerCase().endsWith("csv")) {
-            return true;
-          } else {
-            return false;
-          }
-        };
-
-        final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-        final ZipCodeService zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(config));
-        zcs.deleteAll();
-
-        final File[] files = directory.listFiles(filter);
-
-        for (final File file : files) {
-          final ContentsAttribute csv = new ContentsAttribute();
-          csv.setPath(file.getCanonicalPath());
-
-          final CsvContentsService ccs = new CsvContentsServiceImpl(csv);
-          final List<ZipCode> contents = ccs.getContents();
-
-          logger.info(csv.getPath() + " をインポートしています......");
-          status = zcs.create(contents);
-        }
-
-        logger.info("完了しました。");
-      }
-    } catch (final Exception e) {
-      logger.warn(e.toString());
-      System.exit(1);
-    }
-
-    if (status) {
-      System.exit(2);
-    } else {
-      System.exit(0);
-    }
+    System.exit(status);
   }
 }
