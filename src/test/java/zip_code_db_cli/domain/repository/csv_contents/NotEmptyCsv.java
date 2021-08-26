@@ -2,6 +2,7 @@ package zip_code_db_cli.domain.repository.csv_contents;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
@@ -12,7 +13,6 @@ import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.contents.ContentsRepository;
 import java_itamae_contents.domain.repository.stream.StreamRepository;
 import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
-import javax.inject.Inject;
 import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.After;
 import org.junit.Before;
