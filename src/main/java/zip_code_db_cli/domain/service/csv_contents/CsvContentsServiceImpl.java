@@ -1,5 +1,6 @@
 package zip_code_db_cli.domain.service.csv_contents;
 
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.stream.StreamRepository;
-import javax.inject.Inject;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepository;
 
