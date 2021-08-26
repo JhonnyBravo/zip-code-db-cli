@@ -1,10 +1,10 @@
 package zip_code_db_cli.domain.service.zip_code;
 
+import jakarta.inject.Inject;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java_itamae_connection.domain.model.ConnectionInfo;
-import javax.inject.Inject;
 import zip_code_db_cli.domain.model.ZipCode;
 import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepository;
 
