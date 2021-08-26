@@ -2,6 +2,7 @@ package zip_code_db_cli.domain.service.zip_code;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -10,7 +11,6 @@ import java_itamae_connection.domain.service.connection_info.ConnectionInfoServi
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
 import java_itamae_properties.domain.repository.properties.PropertiesRepositoryImpl;
-import javax.inject.Inject;
 import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.After;
 import org.junit.Before;
