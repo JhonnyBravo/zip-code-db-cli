@@ -2,6 +2,7 @@ package zip_code_db_cli.app;
 
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -9,7 +10,6 @@ import java.util.List;
 import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_properties.domain.service.properties.PropertiesService;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import zip_code_db_cli.domain.model.ZipCode;
