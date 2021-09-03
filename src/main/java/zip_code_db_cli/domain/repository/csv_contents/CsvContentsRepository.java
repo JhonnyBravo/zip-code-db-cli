@@ -3,26 +3,26 @@ package zip_code_db_cli.domain.repository.csv_contents;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 
 /**
  * CSV の読み書きを操作する。
  */
 public interface CsvContentsRepository {
   /**
-   * CSV を読み込んで {@link ZipCode} の {@link List} に変換して返す。
+   * CSV を読み込んで {@link ZipCodeCsvEntity} の {@link List} に変換して返す。
    *
    * @param reader 操作対象とするファイルの {@link Reader} を指定する。
-   * @return contents {@link ZipCode} の {@link List} を返す。
+   * @return contents {@link ZipCodeCsvEntity} の {@link List} を返す。
    * @throws Exception {@link java.lang.Exception}
    */
-  List<ZipCode> getContents(Reader reader) throws Exception;
+  List<ZipCodeCsvEntity> getContents(Reader reader) throws Exception;
 
   /**
    * CSV を上書きする。
    *
    * @param writer 操作対象とするファイルの {@link Writer} を指定する。
-   * @param contents 書込み対象とする {@link ZipCode} の {@link List} を指定する。
+   * @param contents 書込み対象とする {@link ZipCodeCsvEntity} の {@link List} を指定する。
    * @return status
    *         <ul>
    *         <li>true: 書込みに成功したことを表す。</li>
@@ -30,7 +30,7 @@ public interface CsvContentsRepository {
    *         </ul>
    * @throws Exception {@link java.lang.Exception}
    */
-  boolean updateContents(Writer writer, List<ZipCode> contents) throws Exception;
+  boolean updateContents(Writer writer, List<ZipCodeCsvEntity> contents) throws Exception;
 
   /**
    * CSV を空にする。
