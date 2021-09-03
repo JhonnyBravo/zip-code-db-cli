@@ -18,7 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 
 /**
  * CSV が空ではない場合のテスト
@@ -32,11 +32,11 @@ public class NotEmptyCsv {
   private File file;
   private ContentsAttribute attr;
 
-  private final Supplier<List<ZipCode>> contentsSupplier = () -> {
-    final List<ZipCode> contents = new ArrayList<>();
+  private final Supplier<List<ZipCodeCsvEntity>> contentsSupplier = () -> {
+    final List<ZipCodeCsvEntity> contents = new ArrayList<>();
 
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeCsvEntity zipcode = new ZipCodeCsvEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600000");
@@ -52,7 +52,7 @@ public class NotEmptyCsv {
       contents.add(zipcode);
     }
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeCsvEntity zipcode = new ZipCodeCsvEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600042");
@@ -83,7 +83,7 @@ public class NotEmptyCsv {
     attr = new ContentsAttribute();
     attr.setPath("test.csv");
 
-    final List<ZipCode> contents = contentsSupplier.get();
+    final List<ZipCodeCsvEntity> contents = contentsSupplier.get();
 
     try (Writer writer = sr.getWriter(attr)) {
       ccr.updateContents(writer, contents);
@@ -100,10 +100,10 @@ public class NotEmptyCsv {
    */
   @Test
   public void test1() throws Exception {
-    final List<ZipCode> expContents = contentsSupplier.get();
+    final List<ZipCodeCsvEntity> expContents = contentsSupplier.get();
 
     try (Reader reader = sr.getReader(attr)) {
-      final List<ZipCode> actContents = ccr.getContents(reader);
+      final List<ZipCodeCsvEntity> actContents = ccr.getContents(reader);
       assertThat(actContents.size(), is(2));
 
       assertThat(actContents.get(0).getZipCode(), is(expContents.get(0).getZipCode()));
@@ -123,10 +123,10 @@ public class NotEmptyCsv {
    */
   @Test
   public void test2() throws Exception {
-    final List<ZipCode> expContents = new ArrayList<>();
+    final List<ZipCodeCsvEntity> expContents = new ArrayList<>();
 
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeCsvEntity zipcode = new ZipCodeCsvEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600042");
@@ -148,7 +148,7 @@ public class NotEmptyCsv {
     }
 
     try (Reader reader = sr.getReader(attr)) {
-      final List<ZipCode> actContents = ccr.getContents(reader);
+      final List<ZipCodeCsvEntity> actContents = ccr.getContents(reader);
       assertThat(actContents.size(), is(1));
 
       assertThat(actContents.get(0).getZipCode(), is(expContents.get(0).getZipCode()));
@@ -169,7 +169,7 @@ public class NotEmptyCsv {
     }
 
     try (Reader reader = sr.getReader(attr)) {
-      final List<ZipCode> contents = ccr.getContents(reader);
+      final List<ZipCodeCsvEntity> contents = ccr.getContents(reader);
       assertThat(contents.size(), is(0));
     }
   }
