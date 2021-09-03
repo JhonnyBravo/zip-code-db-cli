@@ -6,22 +6,22 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 
 public class CsvContentsRepositoryImpl implements CsvContentsRepository {
 
   @Override
-  public List<ZipCode> getContents(Reader reader) throws Exception {
-    List<ZipCode> contents = new ArrayList<>();
-    contents = new CsvToBeanBuilder<ZipCode>(reader).withType(ZipCode.class).build().parse();
+  public List<ZipCodeCsvEntity> getContents(Reader reader) throws Exception {
+    List<ZipCodeCsvEntity> contents = new ArrayList<>();
+    contents = new CsvToBeanBuilder<ZipCodeCsvEntity>(reader).withType(ZipCodeCsvEntity.class).build().parse();
     return contents;
   }
 
   @Override
-  public boolean updateContents(Writer writer, List<ZipCode> contents) throws Exception {
+  public boolean updateContents(Writer writer, List<ZipCodeCsvEntity> contents) throws Exception {
     boolean status = false;
 
-    new StatefulBeanToCsvBuilder<ZipCode>(writer).build().write(contents);
+    new StatefulBeanToCsvBuilder<ZipCodeCsvEntity>(writer).build().write(contents);
     status = true;
 
     return status;
@@ -31,7 +31,7 @@ public class CsvContentsRepositoryImpl implements CsvContentsRepository {
   public boolean deleteContents(Writer writer) throws Exception {
     boolean status = false;
 
-    final List<ZipCode> contents = new ArrayList<>();
+    final List<ZipCodeCsvEntity> contents = new ArrayList<>();
     status = updateContents(writer, contents);
 
     return status;
