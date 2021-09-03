@@ -1,87 +1,76 @@
 package zip_code_db_cli.domain.repository.zip_code;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
-import zip_code_db_cli.domain.model.ZipCode;
+import java.util.Optional;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import zip_code_db_cli.domain.model.ZipCodeEntity;
 
 public class ZipCodeRepositoryImpl implements ZipCodeRepository {
+  private EntityManagerFactory factory;
+  private EntityManager manager;
+
+  @PostConstruct
+  private void init() {
+    this.factory = Persistence.createEntityManagerFactory("zip_code_db_cli");
+    this.manager = factory.createEntityManager();
+  }
+
+  @PreDestroy
+  private void destroy() {
+    this.manager.close();
+    this.factory.close();
+  }
 
   @Override
-  public List<ZipCode> findAll(Connection connection) throws Exception {
-    final List<ZipCode> recordset = new ArrayList<>();
+  public List<ZipCodeEntity> findAll() throws Exception {
+    final String sql = "SELECT e FROM ZipCodeEntity e";
+    final TypedQuery<ZipCodeEntity> query = this.manager.createQuery(sql, ZipCodeEntity.class);
 
-    try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM t_zip_code;");
-        ResultSet resultset = statement.executeQuery();) {
-      while (resultset.next()) {
-        final ZipCode zipcode = new ZipCode();
-
-        zipcode.setId(resultset.getInt("id"));
-        zipcode.setJisCode(resultset.getString("jis_code"));
-        zipcode.setZipCode(resultset.getString("zip_code"));
-
-        zipcode.setPrefecture(resultset.getString("prefecture"));
-        zipcode.setCity(resultset.getString("city"));
-        zipcode.setArea(resultset.getString("area"));
-
-        zipcode.setPrefecturePhonetic(resultset.getString("prefecture_phonetic"));
-        zipcode.setCityPhonetic(resultset.getString("city_phonetic"));
-        zipcode.setAreaPhonetic(resultset.getString("area_phonetic"));
-
-        zipcode.setReasonFlag(resultset.getInt("reason_flag"));
-        zipcode.setUpdateFlag(resultset.getInt("update_flag"));
-
-        recordset.add(zipcode);
-      }
-    }
-
+    final List<ZipCodeEntity> recordset = query.getResultList();
     return recordset;
   }
 
   @Override
-  public boolean create(Connection connection, List<ZipCode> contents) throws Exception {
+  public boolean create(List<ZipCodeEntity> recordset) throws Exception {
     boolean status = false;
+    long count = 0;
 
-    try (PreparedStatement statement = connection.prepareStatement(
-        "INSERT INTO t_zip_code (jis_code,zip_code,prefecture_phonetic,city_phonetic,area_phonetic,prefecture,city,area,update_flag,reason_flag) VALUES (?,?,?,?,?,?,?,?,?,?)")) {
-      connection.setAutoCommit(false);
-      long count = 0;
+    final String sql = "SELECT Max(e.id) FROM ZipCodeEntity e";
+    final TypedQuery<Integer> query = this.manager.createQuery(sql, Integer.class);
+    final Optional<Integer> maxId = Optional.ofNullable(query.getSingleResult());
+    Integer id = maxId.orElse(0) + 1;
 
-      for (final ZipCode zipcode : contents) {
-        statement.setString(1, zipcode.getJisCode());
-        statement.setString(2, zipcode.getZipCode());
+    final Session session = this.manager.unwrap(Session.class);
+    final Transaction transaction = session.beginTransaction();
 
-        statement.setString(3, zipcode.getPrefecturePhonetic());
-        statement.setString(4, zipcode.getCityPhonetic());
-        statement.setString(5, zipcode.getAreaPhonetic());
-
-        statement.setString(6, zipcode.getPrefecture());
-        statement.setString(7, zipcode.getCity());
-        statement.setString(8, zipcode.getArea());
-
-        statement.setInt(9, zipcode.getUpdateFlag());
-        statement.setInt(10, zipcode.getReasonFlag());
-
-        statement.addBatch();
+    try {
+      for (final ZipCodeEntity zipcode : recordset) {
+        zipcode.setId(id);
+        session.save(zipcode);
+        id++;
         count++;
 
         if (count % 1000 == 0) {
-          statement.executeBatch();
-          connection.commit();
-          connection.setAutoCommit(false);
+          session.flush();
+          session.clear();
         }
       }
 
-      statement.executeBatch();
-      connection.commit();
+      transaction.commit();
 
       if (count > 0) {
         status = true;
       }
     } catch (final Exception e) {
-      connection.rollback();
+      transaction.rollback();
       throw e;
     }
 
@@ -89,20 +78,24 @@ public class ZipCodeRepositoryImpl implements ZipCodeRepository {
   }
 
   @Override
-  public boolean deleteAll(Connection connection) throws Exception {
+  public boolean deleteAll() throws Exception {
     boolean status = false;
+    final Session session = this.manager.unwrap(Session.class);
 
-    try (PreparedStatement statement = connection.prepareStatement("DELETE FROM t_zip_code;")) {
-      connection.setAutoCommit(false);
+    final String sql = "DELETE FROM ZipCodeEntity";
+    final Query query = session.createQuery(sql);
 
-      statement.addBatch();
-      statement.addBatch("ALTER TABLE t_zip_code auto_increment=1;");
-      statement.executeBatch();
+    final Transaction transaction = session.beginTransaction();
 
-      connection.commit();
-      status = true;
+    try {
+      final int count = query.executeUpdate();
+      transaction.commit();
+
+      if (count > 0) {
+        status = true;
+      }
     } catch (final Exception e) {
-      connection.rollback();
+      transaction.rollback();
       throw e;
     }
 
