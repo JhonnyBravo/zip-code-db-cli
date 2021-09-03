@@ -35,6 +35,11 @@
             <artifactId>java-itamae-connection</artifactId>
             <version>weld-junit4-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core-jakarta</artifactId>
+            <version>5.5.7.Final</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
