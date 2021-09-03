@@ -2,7 +2,7 @@ package zip_code_db_cli.domain.service.csv_contents;
 
 import java.util.List;
 import java_itamae_contents.domain.model.ContentsAttribute;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 
 /**
  * CSV の読み書きを操作する。
@@ -16,17 +16,17 @@ public interface CsvContentsService {
   void init(ContentsAttribute attr);
 
   /**
-   * CSV を読み込んで {@link ZipCode} の {@link List} に変換して返す。
+   * CSV を読み込んで {@link ZipCodeCsvEntity} の {@link List} に変換して返す。
    *
-   * @return contents {@link ZipCode} の {@link List} を返す。
+   * @return contents {@link ZipCodeCsvEntity} の {@link List} を返す。
    * @throws Exception {@link java.lang.Exception}
    */
-  List<ZipCode> getContents() throws Exception;
+  List<ZipCodeCsvEntity> getContents() throws Exception;
 
   /**
    * CSV を上書きする。
    *
-   * @param content 書込み対象とする情報を納めた {@link ZipCode} を指定する。
+   * @param content 書込み対象とする情報を納めた {@link ZipCodeCsvEntity} を指定する。
    * @return status
    *         <ul>
    *         <li>true: 書込みに成功したことを表す。</li>
@@ -34,12 +34,12 @@ public interface CsvContentsService {
    *         </ul>
    * @throws Exception {@link java.lang.Exception}
    */
-  boolean updateContent(ZipCode content) throws Exception;
+  boolean updateContent(ZipCodeCsvEntity content) throws Exception;
 
   /**
    * CSV を一行追記する。
    *
-   * @param content 書込み対象とする情報を納めた {@link ZipCode} を指定する。
+   * @param content 書込み対象とする情報を納めた {@link ZipCodeCsvEntity} を指定する。
    * @return status
    *         <ul>
    *         <li>true: 追記に成功したことを表す。</li>
@@ -47,7 +47,7 @@ public interface CsvContentsService {
    *         </ul>
    * @throws Exception {@link java.lang.Exception}
    */
-  boolean appendContent(ZipCode content) throws Exception;
+  boolean appendContent(ZipCodeCsvEntity content) throws Exception;
 
   /**
    * CSV を空にする。
