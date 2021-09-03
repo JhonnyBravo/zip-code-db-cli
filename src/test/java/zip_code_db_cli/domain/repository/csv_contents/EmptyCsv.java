@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 
 /**
  * CSV が空である場合のテスト
@@ -31,11 +31,11 @@ public class EmptyCsv {
   private File file;
   private ContentsAttribute attr;
 
-  private final Supplier<List<ZipCode>> contentsSupplier = () -> {
-    final List<ZipCode> contents = new ArrayList<>();
+  private final Supplier<List<ZipCodeCsvEntity>> contentsSupplier = () -> {
+    final List<ZipCodeCsvEntity> contents = new ArrayList<>();
 
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeCsvEntity zipcode = new ZipCodeCsvEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600000");
@@ -51,7 +51,7 @@ public class EmptyCsv {
       contents.add(zipcode);
     }
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeCsvEntity zipcode = new ZipCodeCsvEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600042");
@@ -94,7 +94,7 @@ public class EmptyCsv {
   @Test
   public void test1() throws Exception {
     try (Reader reader = sr.getReader(attr)) {
-      final List<ZipCode> contents = ccr.getContents(reader);
+      final List<ZipCodeCsvEntity> contents = ccr.getContents(reader);
       assertThat(contents.size(), is(0));
     }
   }
@@ -104,7 +104,7 @@ public class EmptyCsv {
    */
   @Test
   public void test2() throws Exception {
-    final List<ZipCode> expContents = contentsSupplier.get();
+    final List<ZipCodeCsvEntity> expContents = contentsSupplier.get();
 
     try (Writer writer = sr.getWriter(attr)) {
       final boolean status = ccr.updateContents(writer, expContents);
@@ -112,7 +112,7 @@ public class EmptyCsv {
     }
 
     try (Reader reader = sr.getReader(attr)) {
-      final List<ZipCode> actContents = ccr.getContents(reader);
+      final List<ZipCodeCsvEntity> actContents = ccr.getContents(reader);
       assertThat(actContents.size(), is(2));
 
       assertThat(actContents.get(0).getZipCode(), is(expContents.get(0).getZipCode()));
