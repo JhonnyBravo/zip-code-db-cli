@@ -6,7 +6,7 @@ import java.io.Serializable;
 /**
  * 郵便番号 CSV 用のエンティティ。
  */
-public class ZipCode implements Serializable {
+public class ZipCodeCsvEntity implements Serializable {
   private static final long serialVersionUID = 1L;
 
   // MySQL 用のレコード識別子として使用する。 CSV の読書きには使用しない。
