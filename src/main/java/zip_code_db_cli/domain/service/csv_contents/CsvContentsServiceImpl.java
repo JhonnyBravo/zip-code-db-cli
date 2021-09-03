@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java_itamae_contents.domain.model.ContentsAttribute;
 import java_itamae_contents.domain.repository.stream.StreamRepository;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
 import zip_code_db_cli.domain.repository.csv_contents.CsvContentsRepository;
 
 public class CsvContentsServiceImpl implements CsvContentsService {
@@ -25,8 +25,8 @@ public class CsvContentsServiceImpl implements CsvContentsService {
   }
 
   @Override
-  public List<ZipCode> getContents() throws Exception {
-    List<ZipCode> contents = new ArrayList<>();
+  public List<ZipCodeCsvEntity> getContents() throws Exception {
+    List<ZipCodeCsvEntity> contents = new ArrayList<>();
 
     try (Reader reader = sr.getReader(attr)) {
       contents = ccr.getContents(reader);
@@ -36,7 +36,7 @@ public class CsvContentsServiceImpl implements CsvContentsService {
   }
 
   @Override
-  public boolean updateContent(ZipCode content) throws Exception {
+  public boolean updateContent(ZipCodeCsvEntity content) throws Exception {
     boolean status = false;
     final File file = new File(attr.getPath());
 
@@ -44,7 +44,7 @@ public class CsvContentsServiceImpl implements CsvContentsService {
       file.createNewFile();
     }
 
-    final List<ZipCode> contents = new ArrayList<>();
+    final List<ZipCodeCsvEntity> contents = new ArrayList<>();
     contents.add(content);
 
     try (Writer writer = sr.getWriter(attr)) {
@@ -55,7 +55,7 @@ public class CsvContentsServiceImpl implements CsvContentsService {
   }
 
   @Override
-  public boolean appendContent(ZipCode content) throws Exception {
+  public boolean appendContent(ZipCodeCsvEntity content) throws Exception {
     boolean status = false;
     final File file = new File(attr.getPath());
 
@@ -63,7 +63,7 @@ public class CsvContentsServiceImpl implements CsvContentsService {
       file.createNewFile();
     }
 
-    final List<ZipCode> contents = getContents();
+    final List<ZipCodeCsvEntity> contents = getContents();
     contents.add(content);
 
     try (Writer writer = sr.getWriter(attr)) {
@@ -76,7 +76,7 @@ public class CsvContentsServiceImpl implements CsvContentsService {
   @Override
   public boolean deleteContents() throws Exception {
     boolean status = false;
-    final List<ZipCode> contents = getContents();
+    final List<ZipCodeCsvEntity> contents = getContents();
 
     if (contents.size() > 0) {
       try (Writer writer = sr.getWriter(attr)) {
