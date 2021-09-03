@@ -6,13 +6,13 @@ import jakarta.inject.Inject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.List;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
 import java_itamae_contents.domain.model.ContentsAttribute;
-import java_itamae_properties.domain.service.properties.PropertiesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeCsvEntity;
+import zip_code_db_cli.domain.model.ZipCodeEntity;
 import zip_code_db_cli.domain.service.csv_contents.CsvContentsService;
 import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
 
@@ -20,10 +20,6 @@ import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
  * 郵便番号データを MySQL へ一括登録する。
  */
 public class Application {
-  @Inject
-  private PropertiesService ps;
-  @Inject
-  private ConnectionInfoService cis;
   @Inject
   private ZipCodeService zcs;
   @Inject
@@ -36,7 +32,7 @@ public class Application {
    *
    * @param args
    *        <ul>
-   *        <li>--import, -i &lt;config_path&gt;: config_path に指定した設定ファイルの内容に従って CSV を読込み、 MySQL
+   *        <li>--import, -i &lt;dir_path&gt;: dir_path に指定したディレクトリ配下に存在する CSV を読込み、 MySQL
    *        へ一括登録する。</li>
    *        </ul>
    */
@@ -47,15 +43,14 @@ public class Application {
     final Getopt options = new Getopt("Main", args, "i:", longopts);
     final Logger logger = LoggerFactory.getLogger(Application.class);
 
-    final ContentsAttribute config = new ContentsAttribute();
-
     int c;
     int importFlag = 0;
+    String csvPath = null;
 
     while ((c = options.getopt()) != -1) {
       switch (c) {
         case 'i':
-          config.setPath(options.getOptarg());
+          csvPath = options.getOptarg();
           importFlag = 1;
           break;
         default:
@@ -67,8 +62,6 @@ public class Application {
 
     try {
       if (importFlag == 1) {
-        ps.init(config);
-        final String csvPath = ps.getProperty("csvPath");
         final File directory = new File(csvPath);
 
         if (!directory.isDirectory()) {
@@ -83,7 +76,6 @@ public class Application {
           }
         };
 
-        zcs.init(cis.getConnectionInfo(config));
         zcs.deleteAll();
 
         final File[] files = directory.listFiles(filter);
@@ -92,10 +84,28 @@ public class Application {
           final ContentsAttribute csv = new ContentsAttribute();
           csv.setPath(file.getCanonicalPath());
           ccs.init(csv);
-          final List<ZipCode> contents = ccs.getContents();
+          final List<ZipCodeCsvEntity> contents = ccs.getContents();
+          final List<ZipCodeEntity> recordset = new ArrayList<>();
+
+          contents.forEach(content -> {
+            final ZipCodeEntity record = new ZipCodeEntity();
+
+            record.setJisCode(content.getJisCode());
+            record.setZipCode(content.getZipCode());
+            record.setPrefecturePhonetic(content.getPrefecturePhonetic());
+            record.setCityPhonetic(content.getCityPhonetic());
+            record.setAreaPhonetic(content.getAreaPhonetic());
+            record.setPrefecture(content.getPrefecture());
+            record.setCity(content.getCity());
+            record.setArea(content.getArea());
+            record.setReasonFlag(content.getReasonFlag());
+            record.setUpdateFlag(content.getUpdateFlag());
+
+            recordset.add(record);
+          });
 
           logger.info(csv.getPath() + " をインポートしています......");
-          status = zcs.create(contents);
+          status = zcs.create(recordset);
         }
 
         logger.info("完了しました。");
