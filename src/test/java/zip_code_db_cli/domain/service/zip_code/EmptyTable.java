@@ -6,17 +6,12 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
-import java_itamae_contents.domain.model.ContentsAttribute;
-import java_itamae_contents.domain.repository.stream.StreamRepositoryImpl;
-import java_itamae_properties.domain.repository.properties.PropertiesRepositoryImpl;
 import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import zip_code_db_cli.domain.model.ZipCode;
+import zip_code_db_cli.domain.model.ZipCodeEntity;
 import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepositoryImpl;
 
 /**
@@ -24,15 +19,13 @@ import zip_code_db_cli.domain.repository.zip_code.ZipCodeRepositoryImpl;
  */
 public class EmptyTable {
   @Inject
-  private ZipCodeService zcs;
-  @Inject
-  private ConnectionInfoService cis;
+  private ZipCodeService service;
 
-  private final Supplier<List<ZipCode>> contentsSupplier = () -> {
-    final List<ZipCode> contents = new ArrayList<>();
+  private final Supplier<List<ZipCodeEntity>> recordsetSupplier = () -> {
+    final List<ZipCodeEntity> recordset = new ArrayList<>();
 
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeEntity zipcode = new ZipCodeEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600000");
@@ -45,10 +38,10 @@ public class EmptyTable {
       zipcode.setUpdateFlag(0);
       zipcode.setReasonFlag(1);
 
-      contents.add(zipcode);
+      recordset.add(zipcode);
     }
     {
-      final ZipCode zipcode = new ZipCode();
+      final ZipCodeEntity zipcode = new ZipCodeEntity();
 
       zipcode.setJisCode("01101");
       zipcode.setZipCode("0600042");
@@ -61,34 +54,28 @@ public class EmptyTable {
       zipcode.setUpdateFlag(1);
       zipcode.setReasonFlag(0);
 
-      contents.add(zipcode);
+      recordset.add(zipcode);
     }
 
-    return contents;
+    return recordset;
   };
 
   @Rule
   public WeldInitiator weld = WeldInitiator
-      .from(ConnectionInfoServiceImpl.class, StreamRepositoryImpl.class,
-          PropertiesRepositoryImpl.class, ZipCodeServiceImpl.class, ZipCodeRepositoryImpl.class)
-      .inject(this).build();
+      .from(ZipCodeServiceImpl.class, ZipCodeRepositoryImpl.class).inject(this).build();
 
   @Before
   public void setUp() throws Exception {
-    final ContentsAttribute attr = new ContentsAttribute();
-    attr.setPath("src/test/resources/config.properties");
-    zcs.init(cis.getConnectionInfo(attr));
-
-    final List<ZipCode> recordset = zcs.findAll();
+    final List<ZipCodeEntity> recordset = service.findAll();
 
     if (recordset.size() > 0) {
-      zcs.deleteAll();
+      service.deleteAll();
     }
   }
 
   @After
   public void tearDown() throws Exception {
-    zcs.deleteAll();
+    service.deleteAll();
   }
 
   /**
@@ -96,7 +83,7 @@ public class EmptyTable {
    */
   @Test
   public void test1() throws Exception {
-    final List<ZipCode> recordset = zcs.findAll();
+    final List<ZipCodeEntity> recordset = service.findAll();
     assertThat(recordset.size(), is(0));
   }
 
@@ -105,35 +92,35 @@ public class EmptyTable {
    */
   @Test
   public void test2() throws Exception {
-    final List<ZipCode> expContents = contentsSupplier.get();
+    final List<ZipCodeEntity> expRecordset = recordsetSupplier.get();
 
-    final boolean status = zcs.create(expContents);
+    final boolean status = service.create(expRecordset);
     assertThat(status, is(true));
 
-    final List<ZipCode> actContents = zcs.findAll();
-    assertThat(actContents.size(), is(2));
+    final List<ZipCodeEntity> actRecordset = service.findAll();
+    assertThat(actRecordset.size(), is(2));
 
-    assertThat(actContents.get(0).getZipCode(), is(expContents.get(0).getZipCode()));
-    assertThat(actContents.get(0).getPrefecture(), is(expContents.get(0).getPrefecture()));
-    assertThat(actContents.get(0).getCity(), is(expContents.get(0).getCity()));
-    assertThat(actContents.get(0).getArea(), is(expContents.get(0).getArea()));
+    assertThat(actRecordset.get(0).getZipCode(), is(expRecordset.get(0).getZipCode()));
+    assertThat(actRecordset.get(0).getPrefecture(), is(expRecordset.get(0).getPrefecture()));
+    assertThat(actRecordset.get(0).getCity(), is(expRecordset.get(0).getCity()));
+    assertThat(actRecordset.get(0).getArea(), is(expRecordset.get(0).getArea()));
 
-    assertThat(actContents.get(1).getZipCode(), is(expContents.get(1).getZipCode()));
-    assertThat(actContents.get(1).getPrefecture(), is(expContents.get(1).getPrefecture()));
-    assertThat(actContents.get(1).getCity(), is(expContents.get(1).getCity()));
-    assertThat(actContents.get(1).getArea(), is(expContents.get(1).getArea()));
+    assertThat(actRecordset.get(1).getZipCode(), is(expRecordset.get(1).getZipCode()));
+    assertThat(actRecordset.get(1).getPrefecture(), is(expRecordset.get(1).getPrefecture()));
+    assertThat(actRecordset.get(1).getCity(), is(expRecordset.get(1).getCity()));
+    assertThat(actRecordset.get(1).getArea(), is(expRecordset.get(1).getArea()));
   }
 
   /**
    * {@link ZipCodeService#create(List)} 実行時に空の {@link List} を渡した場合に終了ステータスが false であること
    */
   public void test3() throws Exception {
-    final List<ZipCode> contents = new ArrayList<>();
+    final List<ZipCodeEntity> newRecordset = new ArrayList<>();
 
-    final boolean status = zcs.create(contents);
+    final boolean status = service.create(newRecordset);
     assertThat(status, is(false));
 
-    final List<ZipCode> recordset = zcs.findAll();
-    assertThat(recordset.size(), is(0));
+    final List<ZipCodeEntity> actRecordset = service.findAll();
+    assertThat(actRecordset.size(), is(0));
   }
 }
