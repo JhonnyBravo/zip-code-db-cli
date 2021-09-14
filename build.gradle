@@ -10,6 +10,7 @@ plugins {
     // Apply the java-library plugin to add support for Java Library
     id 'java-library'
     id 'eclipse'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'maven-publish'
     id 'checkstyle'
     id 'pmd'
@@ -22,15 +23,21 @@ repositories {
     maven {url 'https://jitpack.io'}
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'com.github.JhonnyBravo:java-se-template-bom:dependency-management-SNAPSHOT'
+    }
+}
+
 dependencies {
     api group: 'com.opencsv', name: 'opencsv', version: '5.4'
-    api 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
+    api 'com.github.JhonnyBravo:java-itamae-connection:dependency-management-SNAPSHOT'
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'junit:junit'
 }
 
 group='com.github.JhonnyBravo'
-version='master-SNAPSHOT'
+version='JDBC-SNAPSHOT'
 sourceCompatibility=1.8
 targetCompatibility=1.8
 
