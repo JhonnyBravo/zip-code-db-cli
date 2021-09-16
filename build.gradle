@@ -8,9 +8,10 @@
 
 plugins {
     // Apply the java-library plugin to add support for Java Library
-    id 'java'
+    id 'java-library'
     id 'eclipse'
-    id 'maven'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'maven-publish'
     id 'checkstyle'
     id 'pmd'
 }
@@ -22,15 +23,22 @@ repositories {
     maven {url 'https://jitpack.io'}
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'com.github.JhonnyBravo:java-se-template-bom:master-SNAPSHOT'
+    }
+}
+
 dependencies {
-    compile group: 'com.opencsv', name: 'opencsv', version: '5.4'
-    compile group: 'org.mybatis', name: 'mybatis', version: '3.5.7'
-    compile 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
+    api group: 'com.opencsv', name: 'opencsv', version: '5.4'
+    api group: 'org.mybatis', name: 'mybatis', version: '3.5.7'
+    api 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
     // Use JUnit test framework
-    testCompile 'junit:junit:4.13.2'
+    testImplementation 'junit:junit'
 }
 
 group='com.github.JhonnyBravo'
+version='MyBatis-SNAPSHOT'
 sourceCompatibility=1.8
 targetCompatibility=1.8
 
@@ -47,6 +55,40 @@ task javadocJar(type: Jar, dependsOn: javadoc){
 artifacts{
     archives sourcesJar
     archives javadocJar
+}
+
+java{
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing{
+    publications{
+        mavenJava(MavenPublication){
+            artifactId='zip-code-db-cli'
+            from components.java
+            versionMapping{
+                usage('java-api'){
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime'){
+                    fromResolutionResult()
+                }
+            }
+            pom{
+                name='zip-code-db-cli'
+                description='郵便番号データの一括登録 / 削除をコマンドライン上で実行する為の Java ライブラリ'
+                url='https://github.com/JhonnyBravo/zip-code-db-cli'
+            }
+        }
+    }
+    repositories{
+        maven{
+            def releasesRepoUrl=layout.buildDirectory.dir('repos/releases')
+            def snapshotsRepoUrl=layout.buildDirectory.dir('repos/snapshots')
+            url=version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
 }
 
 javadoc{
@@ -73,13 +115,13 @@ afterEvaluate{
     jar{
         manifest{
             attributes 'Main-Class': getProperty('jar.manifest.attributes.Main-Class')
-            attributes 'Class-Path': configurations.runtime.collect{it.name}.join(' ')
+            attributes 'Class-Path': configurations.runtimeClasspath.collect{it.name}.join(' ')
         }
         
         doLast{
             copy{
-                from configurations.runtime
-                into destinationDir
+                from configurations.runtimeClasspath
+                into destinationDirectory
             }
         }
     }
