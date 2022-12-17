@@ -3,32 +3,60 @@ package zip_code_db_cli.domain.model;
 import com.opencsv.bean.CsvBindByPosition;
 import java.io.Serializable;
 
-/**
- * 郵便番号 CSV 用のエンティティ。
- */
+/** 郵便番号 CSV 用のエンティティ。 */
 public class ZipCode implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  // MySQL 用のレコード識別子として使用する。 CSV の読書きには使用しない。
+  /** MySQL 用のレコード識別子として使用する。 CSV の読書きには使用しない。 */
   private long id;
+  /** 全国地方公共団体コード */
   @CsvBindByPosition(position = 0)
   private String jisCode;
+  /** 郵便番号 */
   @CsvBindByPosition(position = 2)
   private String zipCode;
+  /** 都道府県名カナ */
   @CsvBindByPosition(position = 3)
   private String prefecturePhonetic;
+  /** 市区町村名カナ */
   @CsvBindByPosition(position = 4)
   private String cityPhonetic;
+  /** 町域名カナ */
   @CsvBindByPosition(position = 5)
   private String areaPhonetic;
+  /** 都道府県名 */
   @CsvBindByPosition(position = 6)
   private String prefecture;
+  /** 市区町村名 */
   @CsvBindByPosition(position = 7)
   private String city;
+  /** 町域名 */
   @CsvBindByPosition(position = 8)
   private String area;
+  /**
+   * 更新の表示
+   *
+   * <ul>
+   *   <li>0: 変更なし
+   *   <li>1: 変更あり
+   *   <li>2: 廃止(廃止データのみ使用)
+   * </ul>
+   */
   @CsvBindByPosition(position = 13)
   private int updateFlag;
+  /**
+   * 変更理由
+   *
+   * <ul>
+   *   <li>0: は変更なし
+   *   <li>1: 市政・区政・町政・分区・政令指定都市施行
+   *   <li>2: 住居表示の実施
+   *   <li>3: 区画整理
+   *   <li>4: 郵便区調整等
+   *   <li>5: 訂正
+   *   <li>6: 廃止(廃止データのみ使用)
+   * </ul>
+   */
   @CsvBindByPosition(position = 14)
   private int reasonFlag;
 
@@ -46,7 +74,7 @@ public class ZipCode implements Serializable {
    *
    * @param id ID として設定する整数
    */
-  public void setId(long id) {
+  public void setId(final long id) {
     this.id = id;
   }
 
@@ -64,7 +92,7 @@ public class ZipCode implements Serializable {
    *
    * @param jisCode JIS コードとして設定する文字列
    */
-  public void setJisCode(String jisCode) {
+  public void setJisCode(final String jisCode) {
     this.jisCode = jisCode;
   }
 
@@ -82,7 +110,7 @@ public class ZipCode implements Serializable {
    *
    * @param zipCode 郵便番号として設定する文字列
    */
-  public void setZipCode(String zipCode) {
+  public void setZipCode(final String zipCode) {
     this.zipCode = zipCode;
   }
 
@@ -100,7 +128,7 @@ public class ZipCode implements Serializable {
    *
    * @param prefecturePhonetic 都道府県名のフリガナとして設定する文字列
    */
-  public void setPrefecturePhonetic(String prefecturePhonetic) {
+  public void setPrefecturePhonetic(final String prefecturePhonetic) {
     this.prefecturePhonetic = prefecturePhonetic;
   }
 
@@ -118,7 +146,7 @@ public class ZipCode implements Serializable {
    *
    * @param cityPhonetic 市区郡名のフリガナとして設定する文字列
    */
-  public void setCityPhonetic(String cityPhonetic) {
+  public void setCityPhonetic(final String cityPhonetic) {
     this.cityPhonetic = cityPhonetic;
   }
 
@@ -136,7 +164,7 @@ public class ZipCode implements Serializable {
    *
    * @param areaPhonetic 町域名のフリガナとして設定する文字列
    */
-  public void setAreaPhonetic(String areaPhonetic) {
+  public void setAreaPhonetic(final String areaPhonetic) {
     this.areaPhonetic = areaPhonetic;
   }
 
@@ -154,7 +182,7 @@ public class ZipCode implements Serializable {
    *
    * @param prefecture 都道府県名として設定する文字列
    */
-  public void setPrefecture(String prefecture) {
+  public void setPrefecture(final String prefecture) {
     this.prefecture = prefecture;
   }
 
@@ -172,7 +200,7 @@ public class ZipCode implements Serializable {
    *
    * @param city 市区郡名として設定する文字列
    */
-  public void setCity(String city) {
+  public void setCity(final String city) {
     this.city = city;
   }
 
@@ -190,7 +218,7 @@ public class ZipCode implements Serializable {
    *
    * @param area 町域名として設定する文字列
    */
-  public void setArea(String area) {
+  public void setArea(final String area) {
     this.area = area;
   }
 
@@ -207,13 +235,13 @@ public class ZipCode implements Serializable {
    * 更新の表示を設定する。
    *
    * @param updateFlag 更新の表示として設定する整数
-   *        <ul>
-   *        <li>0: 変更なし</li>
-   *        <li>1: 変更あり</li>
-   *        <li>2: 廃止</li>
-   *        </ul>
+   *     <ul>
+   *       <li>0: 変更なし
+   *       <li>1: 変更あり
+   *       <li>2: 廃止
+   *     </ul>
    */
-  public void setUpdateFlag(int updateFlag) {
+  public void setUpdateFlag(final int updateFlag) {
     this.updateFlag = updateFlag;
   }
 
@@ -230,17 +258,17 @@ public class ZipCode implements Serializable {
    * 変更理由を設定する。
    *
    * @param reasonFlag 変更理由として設定する整数
-   *        <ul>
-   *        <li>0: 変更なし</li>
-   *        <li>1: 市政・区政・町政・分区・政令指定都市施行</li>
-   *        <li>2: 住居表示の実施</li>
-   *        <li>3: 区画整理</li>
-   *        <li>4: 郵便区調整</li>
-   *        <li>5: 訂正</li>
-   *        <li>6: 廃止</li>
-   *        </ul>
+   *     <ul>
+   *       <li>0: 変更なし
+   *       <li>1: 市政・区政・町政・分区・政令指定都市施行
+   *       <li>2: 住居表示の実施
+   *       <li>3: 区画整理
+   *       <li>4: 郵便区調整
+   *       <li>5: 訂正
+   *       <li>6: 廃止
+   *     </ul>
    */
-  public void setReasonFlag(int reasonFlag) {
+  public void setReasonFlag(final int reasonFlag) {
     this.reasonFlag = reasonFlag;
   }
 }
