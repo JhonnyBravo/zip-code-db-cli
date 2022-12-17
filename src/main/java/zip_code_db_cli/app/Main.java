@@ -3,104 +3,122 @@ package zip_code_db_cli.app;
 import gnu.getopt.Getopt;
 import gnu.getopt.LongOpt;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.List;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoService;
-import java_itamae_connection.domain.service.connection_info.ConnectionInfoServiceImpl;
-import java_itamae_contents.domain.model.ContentsAttribute;
-import java_itamae_properties.domain.service.properties.PropertiesService;
-import java_itamae_properties.domain.service.properties.PropertiesServiceImpl;
+import java_itamae.app.properties.ContentsModelValidator;
+import java_itamae.domain.model.contents.ContentsModel;
+import java_itamae.domain.service.properties.PropertiesService;
+import java_itamae.domain.service.properties.PropertiesServiceImpl;
+import java_itamae_connection.domain.model.ConnectionInfo;
+import java_itamae_connection.domain.model.ConnectionInfoConverter;
+import java_itamae_connection.domain.model.ConnectionInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import zip_code_db_cli.domain.model.ZipCode;
-import zip_code_db_cli.domain.service.csv_contents.CsvContentsService;
-import zip_code_db_cli.domain.service.csv_contents.CsvContentsServiceImpl;
 import zip_code_db_cli.domain.service.zip_code.ZipCodeService;
 import zip_code_db_cli.domain.service.zip_code.ZipCodeServiceImpl;
 
-/**
- * 郵便番号データを MySQL へ一括登録する。
- */
+/** 郵便番号データを MySQL へ一括登録する。 */
 public class Main {
   /**
    * 郵便番号データを MySQL へ一括登録する。
    *
    * @param args
-   *        <ul>
-   *        <li>--import, -i &lt;config_path&gt;: config_path に指定した設定ファイルの内容に従って CSV を読込み、 MySQL
-   *        へ一括登録する。</li>
-   *        </ul>
+   *     <ul>
+   *       <li>--import, -i &lt;config_path&gt;: config_path に指定した設定ファイルの内容に従って CSV を読込み、 MySQL
+   *           へ一括登録する。
+   *     </ul>
    */
-  public static void main(String[] args) {
+  @SuppressWarnings("unused")
+  public static void main(final String[] args) {
     final LongOpt[] longopts = new LongOpt[1];
     longopts[0] = new LongOpt("import", LongOpt.REQUIRED_ARGUMENT, null, 'i');
 
     final Getopt options = new Getopt("Main", args, "i:", longopts);
     final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    final ContentsAttribute config = new ContentsAttribute();
+    final ContentsModel config = new ContentsModel();
 
-    int c;
+    int option;
+    int status = 0;
+    final Usage usage = new Usage();
     int importFlag = 0;
 
-    while ((c = options.getopt()) != -1) {
-      switch (c) {
-        case 'i':
-          config.setPath(options.getOptarg());
-          importFlag = 1;
-          break;
+    if (args.length == 0) {
+      usage.run();
+      status = 1;
+    }
+
+    while ((option = options.getopt()) != -1) {
+      if (option == 'i') {
+        config.setPath(options.getOptarg());
+        importFlag = 1;
+      } else {
+        usage.run();
+        status = 1;
       }
     }
 
-    boolean status = false;
+    final PropertiesService propertiesService = new PropertiesServiceImpl();
+    final GetFiles getFiles = new GetFiles();
+    final GetCsvContents getCsvContents = new GetCsvContents();
 
-    try {
-      if (importFlag == 1) {
-        final PropertiesService ps = new PropertiesServiceImpl(config);
-        final String csvPath = ps.getProperty("csvPath");
-        final File directory = new File(csvPath);
+    List<File> fileList = new ArrayList<>();
+    final List<ZipCode> zipCodeList = new ArrayList<>();
 
-        if (!directory.isDirectory()) {
-          throw new FileNotFoundException(csvPath + " が見つかりません。");
-        }
+    // CSV の取得処理
+    if (status != 1 && new ContentsModelValidator().test(config)) {
+      propertiesService.init(config);
 
-        final FilenameFilter filter = (dir, name) -> {
-          if (name.toLowerCase().endsWith("csv")) {
-            return true;
-          } else {
-            return false;
-          }
-        };
+      try {
+        fileList = getFiles.apply(propertiesService.getProperty("csvPath"));
 
-        final ConnectionInfoService cis = new ConnectionInfoServiceImpl();
-        final ZipCodeService zcs = new ZipCodeServiceImpl(cis.getConnectionInfo(config));
-        zcs.deleteAll();
-
-        final File[] files = directory.listFiles(filter);
-
-        for (final File file : files) {
-          final ContentsAttribute csv = new ContentsAttribute();
+        for (final File file : fileList) {
+          final ContentsModel csv = new ContentsModel();
           csv.setPath(file.getCanonicalPath());
-
-          final CsvContentsService ccs = new CsvContentsServiceImpl(csv);
-          final List<ZipCode> contents = ccs.getContents();
-
-          logger.info(csv.getPath() + " をインポートしています......");
-          status = zcs.create(contents);
+          zipCodeList.addAll(getCsvContents.apply(csv));
         }
-
-        logger.info("完了しました。");
+      } catch (final Exception e) {
+        final String message = e.toString();
+        logger.warn("{}", message);
+        status = 1;
       }
-    } catch (final Exception e) {
-      logger.warn(e.toString());
-      System.exit(1);
+    } else {
+      status = 1;
     }
 
-    if (status) {
-      System.exit(2);
-    } else {
-      System.exit(0);
+    if (importFlag == 1 && !zipCodeList.isEmpty()) {
+      try {
+        // ConnectionInfo の取得
+        final ConnectionInfoConverter converter = new ConnectionInfoConverter();
+        final ConnectionInfo cnInfo = converter.apply(propertiesService.getProperties());
+
+        if (new ConnectionInfoValidator().test(cnInfo)) {
+          final ZipCodeService zipCodeService = new ZipCodeServiceImpl();
+          zipCodeService.init(cnInfo);
+
+          // DB の初期化処理
+          if (status != 1) {
+            logger.info("DB を初期化しています......");
+            status = zipCodeService.deleteAll();
+          }
+
+          // DB への登録処理
+          if (status != 1) {
+            logger.info("レコードを登録しています......");
+            status = zipCodeService.create(zipCodeList);
+          }
+        } else {
+          status = 1;
+        }
+      } catch (final Exception e) {
+        final String message = e.toString();
+        logger.warn("{}", message);
+        status = 1;
+      }
     }
+
+    logger.info("完了しました。");
+    System.exit(status);
   }
 }
