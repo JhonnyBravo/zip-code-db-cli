@@ -31,7 +31,7 @@ dependencyManagement {
 
 dependencies {
     api group: 'com.opencsv', name: 'opencsv', version: '5.4'
-    api group: 'org.mybatis', name: 'mybatis', version: '3.5.7'
+    api group: 'org.mybatis', name: 'mybatis', version: '3.5.13'
     api 'com.github.JhonnyBravo:java-itamae-connection:master-SNAPSHOT'
     // Use JUnit test framework
     testImplementation 'junit:junit'
